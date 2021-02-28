@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.index, name = "home"),
     #path('testing/', views.index2, name = "testing"),
     path('admin/', admin.site.urls),
+    path('<int:id>/', views.bookview, name="book-detail")
 ]

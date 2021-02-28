@@ -1,8 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-
 import re
 from pymongo import MongoClient
+from django import template
+register = template.Library()
 
 
 # Create your views here.
@@ -15,10 +16,56 @@ def displayBookCollection():
         collection.append(book)
     return collection
 
+
+def searchByID(ID):
+    collection = []
+    for book in db.find({"_id" : ID}):
+        collection.append(book)
+    return collection
+
+
+def searchByAuthors(author):
+    authorRegex = re.compile("." + author + ".", re.IGNORECASE)
+    collection = []
+    for book in db.find({"authors" : authorRegex}):
+        collection.append(book)
+    return collection
+
+
+def searchByDescription(description):
+    authorRegex = re.compile("." + description + ".", re.IGNORECASE)
+    collection = []
+    for book in db.find({"longDescription" : authorRegex} or {"shortDescription" : authorRegex} ):
+        collection.append(book)
+    return collection
+
+
+def searchByISBN(ISBN):
+    authorRegex = re.compile("." + ISBN + ".", re.IGNORECASE)
+    collection = []
+    for book in db.find({"isbn" : authorRegex}):
+        collection.append(book)
+    return collection
+
+def searchByAuthorsAndDescription(author,description):
+    arr1 = searchByAuthors(author)
+    arr2 = searchByDescription(description)
+    arr3 = [value for value in arr1 if value in arr2]
+    return arr3
+
 def index(request):
-    bookCollection = displayBookCollection()[0].items
+    bookCollection = displayBookCollection()
     context = {
         'bookCollection':bookCollection,
     }
-    return render(request, "project/home.html", context)
+    return render(request, "project/booklist.html", context)
+
+def bookview(request, id):
+    book = searchByID(id)[0]
+    context = {
+        'book':book, 
+        'id': book['_id']
+    }
+    return render(request, 'project/bookview.html', context)
+
 
