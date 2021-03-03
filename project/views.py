@@ -1,5 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 import re
 from pymongo import MongoClient
 from django import template
@@ -69,3 +71,15 @@ def bookview(request, id):
     return render(request, 'project/bookview.html', context)
 
 
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username') # Convert to python types
+            messages.sucess(request, f'Account created for {username}!') # flash message
+            return redirect('home') # Uses the url pattern name
+    
+    else:
+        form = UserCreationForm()
+    return render(request, 'project/register.html', {'form':form})
