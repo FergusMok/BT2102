@@ -79,15 +79,16 @@ def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            form.save() # Creation of auth_user
             username = form.cleaned_data.get('username') # Convert to python types
             messages.success(request, f'Account created for {username}!') # flash message
 
-            ## Creation of User
+            ## Creation of Users model 
             hashedPassword = make_password(form.cleaned_data.get('password1'))
             userId = User.objects.get(username = username).pk
             newUser = Users(userid = userId, userpassword = hashedPassword)
             newUser.save()
+
             return redirect('home') # Uses the url pattern name
 
             # auth_user is for the django login service.
@@ -97,3 +98,6 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'project/register.html', {'form':form})
+
+def adminPage(request):
+    return render(request, 'project/adminPage.html', {})
