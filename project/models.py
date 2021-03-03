@@ -14,8 +14,10 @@ class Book(models.Model):
     duedate = models.DateField(db_column='dueDate', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Book'
+        app_label = 'project'
+
 
 
 class Borrow(models.Model):
@@ -25,9 +27,11 @@ class Borrow(models.Model):
     duedate = models.CharField(db_column='dueDate', max_length=10)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Borrow'
         unique_together = (('userid', 'bookid'),)
+        app_label = 'project'
+
 
 
 class Reserved(models.Model):
@@ -35,17 +39,22 @@ class Reserved(models.Model):
     bookid = models.ForeignKey(Book, models.DO_NOTHING, db_column='bookId')  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        app_label = 'project'
+        managed = True
         db_table = 'Reserved'
 
 
 class Users(models.Model):
-    userid = models.CharField(db_column='userId', primary_key=True, max_length=10)  # Field name made lowercase.
-    administrative = models.IntegerField()
-    fine = models.SmallIntegerField()
-    userpassword = models.CharField(db_column='userPassword', max_length=10, blank=True, null=True)  # Field name made lowercase.
-    bookcount = models.SmallIntegerField(db_column='bookCount')  # Field name made lowercase.
+    # This would have already gone through the Django's own register requirements 
+    userid = models.AutoField(db_column = "userId", primary_key = True) # Auto-increment by Django
+    administrative = models.IntegerField(default = 0) # 0 for false, 1 for true
+    fine = models.SmallIntegerField(default = 0) # No fines 
+    userpassword = models.CharField(db_column='userPassword', max_length=100, blank=False, null=False)  # Field name made lowercase.
+    bookcount = models.SmallIntegerField(db_column='bookCount', default = 0)  # Field name made lowercase.
+
+    # Hence, because id is autofield, admin and fine is default, we just need to supply the password (assignment requirement)
 
     class Meta:
-        managed = False
+        app_label = 'project'
+        managed = True
         db_table = 'Users'

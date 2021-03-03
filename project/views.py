@@ -1,7 +1,11 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User # The auth User model
 from django.contrib import messages
+from project.models import Users
+
 import re
 from pymongo import MongoClient
 from django import template
@@ -77,8 +81,18 @@ def register(request):
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username') # Convert to python types
-            messages.sucess(request, f'Account created for {username}!') # flash message
+            messages.success(request, f'Account created for {username}!') # flash message
+
+            ## Creation of User
+            hashedPassword = make_password(form.cleaned_data.get('password1'))
+            userId = User.objects.get(username = username).pk
+            newUser = Users(userid = userId, userpassword = hashedPassword)
+            newUser.save()
             return redirect('home') # Uses the url pattern name
+
+            # auth_user is for the django login service.
+            # newUser will grab auth_user's ID and hashed password, and 
+            # make a new Users instance ( for assignment purposes )
     
     else:
         form = UserCreationForm()

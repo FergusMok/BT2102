@@ -18,12 +18,12 @@
   </head>
   <body>
     <!-- Flash message for sucessful login / registeration -->
-    {% if messages %} {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %} {% endif %} {% block content %}
     <!-- title, thumbnailUrl, authors, categories, longDescription -->
+    {% block content %}
     <div class="container">
-      {% for book in bookCollection %} {% if forloop.counter0|divisibleby:5 %}
+      {% if messages %} {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% for book in bookCollection %} {% if forloop.counter0|divisibleby:5 %}
       <div class="row text-center d-flex justify-content-around">
         {% endif %}
         <div class="col-md-2" style="cursor: pointer">
