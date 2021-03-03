@@ -100,4 +100,8 @@ def register(request):
     return render(request, 'project/register.html', {'form':form})
 
 def adminPage(request):
-    return render(request, 'project/adminPage.html', {})
+    if request.user.is_authenticated and request.user.is_superuser:
+        return render(request, 'project/adminPage.html', {})
+    else:
+        messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
+        return redirect('home') 
