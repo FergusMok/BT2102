@@ -8,53 +8,83 @@
 from django.db import models
 
 
+class Admins(models.Model):
+    userid = models.AutoField(db_column='userID', primary_key=True)  # Field name made lowercase.
+    userpassword = models.CharField(db_column='userPassword', max_length=128)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Admins'
+
+
 class Book(models.Model):
-    bookid = models.CharField(db_column='bookId', primary_key=True, max_length=10)  # Field name made lowercase.
-    availability = models.IntegerField()
-    duedate = models.DateField(db_column='dueDate', blank=True, null=True)  # Field name made lowercase.
+    bookid = models.AutoField(db_column='bookID', primary_key=True)  # Field name made lowercase.
+    available = models.IntegerField()
+    userid = models.IntegerField(db_column='userID', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'Book'
-        app_label = 'project'
 
 
+class Bookauthor(models.Model):
+    author = models.CharField(primary_key=True, max_length=128)
+    bookid = models.ForeignKey(Book, models.DO_NOTHING, db_column='bookID')  # Field name made lowercase.
 
-class Borrow(models.Model):
-    userid = models.OneToOneField('Users', models.DO_NOTHING, db_column='userId', primary_key=True)  # Field name made lowercase.
-    bookid = models.CharField(db_column='bookId', max_length=10)  # Field name made lowercase.
+    class Meta:
+        managed = False
+        db_table = 'BookAuthor'
+        unique_together = (('author', 'bookid'),)
+
+
+class Borrowreturn(models.Model):
+    userid = models.OneToOneField('Users', models.DO_NOTHING, db_column='userID', primary_key=True)  # Field name made lowercase.
+    bookid = models.ForeignKey(Book, models.DO_NOTHING, db_column='bookID')  # Field name made lowercase.
     extend = models.IntegerField()
-    duedate = models.CharField(db_column='dueDate', max_length=10)  # Field name made lowercase.
+    duedate = models.DateField(db_column='dueDate', blank=True, null=True)  # Field name made lowercase.
+    returndate = models.DateField(db_column='returnDate', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
-        db_table = 'Borrow'
+        managed = False
+        db_table = 'BorrowReturn'
         unique_together = (('userid', 'bookid'),)
-        app_label = 'project'
 
 
-
-class Reserved(models.Model):
-    userid = models.OneToOneField('Users', models.DO_NOTHING, db_column='userId', primary_key=True)  # Field name made lowercase.
-    bookid = models.ForeignKey(Book, models.DO_NOTHING, db_column='bookId')  # Field name made lowercase.
+class Fine(models.Model):
+    userid = models.OneToOneField('Users', models.DO_NOTHING, db_column='userID', primary_key=True)  # Field name made lowercase.
+    fineamount = models.IntegerField(db_column='fineAmount')  # Field name made lowercase.
 
     class Meta:
-        app_label = 'project'
-        managed = True
-        db_table = 'Reserved'
+        managed = False
+        db_table = 'Fine'
+
+
+class Payment(models.Model):
+    userid = models.OneToOneField('Users', models.DO_NOTHING, db_column='userID', primary_key=True)  # Field name made lowercase.
+    paymentdate = models.DateField(db_column='paymentDate')  # Field name made lowercase.
+    paymentamount = models.IntegerField(db_column='paymentAmount')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Payment'
+
+
+class Reservecancel(models.Model):
+    userid = models.OneToOneField('Users', models.DO_NOTHING, db_column='userID', primary_key=True)  # Field name made lowercase.
+    bookid = models.ForeignKey(Book, models.DO_NOTHING, db_column='bookID')  # Field name made lowercase.
+    reservedate = models.DateField(db_column='reserveDate', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'ReserveCancel'
+        unique_together = (('userid', 'bookid'),)
 
 
 class Users(models.Model):
-    # This would have already gone through the Django's own register requirements 
-    userid = models.AutoField(db_column = "userId", primary_key = True) # Auto-increment by Django
-    administrative = models.IntegerField(default = 0) # 0 for false, 1 for true
-    fine = models.SmallIntegerField(default = 0) # No fines 
-    userpassword = models.CharField(db_column='userPassword', max_length=100, blank=False, null=False)  # Field name made lowercase.
-    bookcount = models.SmallIntegerField(db_column='bookCount', default = 0)  # Field name made lowercase.
-
-    # Hence, because id is autofield, admin and fine is default, we just need to supply the password (assignment requirement)
+    userid = models.AutoField(db_column='userID', primary_key=True)  # Field name made lowercase.
+    userpassword = models.CharField(db_column='userPassword', max_length=128)  # Field name made lowercase.
 
     class Meta:
-        app_label = 'project'
-        managed = True
+        managed = False
         db_table = 'Users'
+
