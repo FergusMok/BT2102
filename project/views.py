@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User # The auth User model
 from django.contrib import messages
 from project.models import Users
+from datetime import datetime
 
 import re
 from pymongo import MongoClient
@@ -69,7 +70,7 @@ def index(request):
 def bookview(request, id):
     book = searchByID(id)[0]
     context = {
-        'book':book, 
+        'book':book,
         'id': book['_id']
     }
     return render(request, 'project/bookview.html', context)
@@ -83,7 +84,7 @@ def register(request):
             username = form.cleaned_data.get('username') # Convert to python types
             messages.success(request, f'Account created for {username}!') # flash message
 
-            ## Creation of Users model 
+            ## Creation of Users model
             hashedPassword = make_password(form.cleaned_data.get('password1'))
             userId = User.objects.get(username = username).pk
             newUser = Users(userid = userId, userpassword = hashedPassword)
@@ -92,9 +93,9 @@ def register(request):
             return redirect('home') # Uses the url pattern name
 
             # auth_user is for the django login service.
-            # newUser will grab auth_user's ID and hashed password, and 
+            # newUser will grab auth_user's ID and hashed password, and
             # make a new Users instance ( for assignment purposes )
-    
+
     else:
         form = UserCreationForm()
     return render(request, 'project/register.html', {'form':form})
@@ -104,4 +105,22 @@ def adminPage(request):
         return render(request, 'project/adminPage.html', {})
     else:
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
-        return redirect('home') 
+        return redirect('home')
+
+def borrow(request, userID, bookID):
+    if not Book.objects.get(bookid = bookID):
+        messages.warning(request, f'Book has been borrowed.')
+        return redirect('book-detail')
+    elif Fine.objects.get(userid) == userID:
+        messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
+        return redirect('book-detail')
+    elif BorrowReturn.objects.raw("SELECT count(userID) FROM BorrowReturn br WHERE userid = br.userID and br.returnDate = null") == 4:
+        messages.warning(request, f'Max borrowing limit reached.')
+        return redirect('book-detail')
+    else:
+        if BorrowReturn.objects.raw("userID, bookID IN (SELECT userID, bookID from BorrowReturn br where userid = br.userID and bookid = br.bookID)"):
+            BorrowReturn.objects.remove(userid = userID, bookid = bookID)
+        BorrowReturn.objects.create(userid = userID, bookid = bookID, extend = False, duedate = datetime.now() + timedelta(days=28), blank)
+        thisBook = Book.objects.get(bookid = bookID)
+        thisBook.available = False
+        return redirect('book-detail')
