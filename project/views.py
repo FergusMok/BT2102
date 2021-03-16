@@ -12,6 +12,9 @@ from pymongo import MongoClient
 from django import template
 register = template.Library()
 
+#model imports
+from .models import Users
+from .models import Fine
 
 # Create your views here.
 client = MongoClient("mongodb+srv://Group1:BT2102noice@bt2102g1.hckrp.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
@@ -107,20 +110,27 @@ def adminPage(request):
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
         return redirect('home')
 
-def borrow(request, userID, bookID):
-    if not Book.objects.get(bookid = bookID):
-        messages.warning(request, f'Book has been borrowed.')
-        return redirect('book-detail')
-    elif Fine.objects.get(userid) == userID:
-        messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
-        return redirect('book-detail')
-    elif BorrowReturn.objects.raw("SELECT count(userID) FROM BorrowReturn br WHERE userid = br.userID and br.returnDate = null") == 4:
-        messages.warning(request, f'Max borrowing limit reached.')
-        return redirect('book-detail')
-    else:
-        if BorrowReturn.objects.raw("userID, bookID IN (SELECT userID, bookID from BorrowReturn br where userid = br.userID and bookid = br.bookID)"):
-            BorrowReturn.objects.remove(userid = userID, bookid = bookID)
-        BorrowReturn.objects.create(userid = userID, bookid = bookID, extend = False, duedate = datetime.now() + timedelta(days=28), blank)
-        thisBook = Book.objects.get(bookid = bookID)
-        thisBook.available = False
-        return redirect('book-detail')
+def userProfileView(request, id): 
+    return render(request, 'project/userprofile.html')
+
+# def borrowView(request, bookid):
+#     print(bookid)
+#     return render(request, 'project/borrowed.html')
+
+# def borrow(request, userID, bookID):
+#     if not Book.objects.get(bookid = bookID):
+#         messages.warning(request, f'Book has been borrowed.')
+#         return redirect('book-detail')
+#     elif Fine.objects.get(userid) == userID:
+#         messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
+#         return redirect('book-detail')
+#     elif BorrowReturn.objects.raw("SELECT count(userID) FROM BorrowReturn br WHERE userid = br.userID and br.returnDate = null") == 4:
+#         messages.warning(request, f'Max borrowing limit reached.')
+#         return redirect('book-detail')
+#     else:
+#         if BorrowReturn.objects.raw("userID, bookID IN (SELECT userID, bookID from BorrowReturn br where userid = br.userID and bookid = br.bookID)"):
+#             BorrowReturn.objects.remove(userid = userID, bookid = bookID)
+#         BorrowReturn.objects.create(userid = userID, bookid = bookID, extend = False, duedate = datetime.now() + timedelta(days=28), blank)
+#         thisBook = Book.objects.get(bookid = bookID)
+#         thisBook.available = False
+#         return redirect('book-detail')
