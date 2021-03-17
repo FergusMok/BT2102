@@ -13,5 +13,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('<int:id>/', views.bookview, name="book-detail"),
     path('user/<int:id>/', views.userProfileView, name="user-profile"),
-    path('borrowed/<int:bookid>/<int:userid>/', views.borrowView, name="borrow"),
+    path('borrowed/<int:bookid>/<int:userid>/', views.borrow, name="borrow"),
 ]

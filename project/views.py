@@ -4,8 +4,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User # The auth User model
 from django.contrib import messages
-from project.models import Users
-from datetime import datetime
+from project.models import Admins, Users, Book, Bookauthor, Borrowreturn, Fine, Payment, Reservecancel
+from datetime import datetime, timedelta
+from django.db import connection
 
 import re
 from pymongo import MongoClient
@@ -110,28 +111,34 @@ def adminPage(request):
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
         return redirect('home')
 
-def userProfileView(request,id): 
+def userProfileView(request,id):
     return render(request, 'project/userprofile.html')
 
+"""
 def borrowView(request, bookid, userid):
     print(bookid)
     print(userid)
     return render(request, 'project/borrowed.html')
+"""
 
-# def borrow(request, userID, bookID):
-#     if not Book.objects.get(bookid = bookID):
-#         messages.warning(request, f'Book has been borrowed.')
-#         return redirect('book-detail')
-#     elif Fine.objects.get(userid) == userID:
-#         messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
-#         return redirect('book-detail')
-#     elif BorrowReturn.objects.raw("SELECT count(userID) FROM BorrowReturn br WHERE userid = br.userID and br.returnDate = null") == 4:
-#         messages.warning(request, f'Max borrowing limit reached.')
-#         return redirect('book-detail')
-#     else:
-#         if BorrowReturn.objects.raw("userID, bookID IN (SELECT userID, bookID from BorrowReturn br where userid = br.userID and bookid = br.bookID)"):
-#             BorrowReturn.objects.remove(userid = userID, bookid = bookID)
-#         BorrowReturn.objects.create(userid = userID, bookid = bookID, extend = False, duedate = datetime.now() + timedelta(days=28), blank)
-#         thisBook = Book.objects.get(bookid = bookID)
-#         thisBook.available = False
-#         return redirect('book-detail')
+def borrow(request, bookid, userid):
+    cursor = connection.cursor()
+    cursor.execute("SELECT available FROM Book b WHERE %s = b.bookID", [bookid])
+    if not cursor.fetchall()[0][0]:
+        messages.warning(request, f'Book has been borrowed.')
+        return bookview(request, bookid)
+    cursor.execute("SELECT EXISTS(SELECT userID FROM Fine WHERE userID = %s)", [userid])
+    if cursor.fetchall()[0][0]:
+        messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
+        return bookview(request, bookid)
+    cursor.execute("SELECT count(userID) FROM BorrowReturn br WHERE %s = br.userID and br.returnDate = null", [userid])
+    if cursor.fetchall()[0][0] == 4:
+        messages.warning(request, f'Max borrowing limit reached.')
+        return bookview(request, bookid)
+    else:
+        cursor.execute("SELECT EXISTS(SELECT userID, bookID from BorrowReturn br where %s = br.userID and %s = br.bookID)", [userid, bookid])
+        if cursor.fetchall()[0][0]:
+            cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
+        cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() + timedelta(days=28)).strftime('%Y-%m-%d')])
+        cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
+        return render(request, 'project/borrowed.html')
