@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.hashers import make_password
@@ -12,6 +12,9 @@ import re
 from pymongo import MongoClient
 from django import template
 register = template.Library()
+
+#form imports 
+from .forms import BookSearchForm
 
 #model imports
 from .models import Users
@@ -142,3 +145,15 @@ def borrow(request, bookid, userid):
         cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() + timedelta(days=28)).strftime('%Y-%m-%d')])
         cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
         return render(request, 'project/borrowed.html')
+
+def searchView(request):
+    if request.method == 'POST':
+        form = BookSearchForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data["query"]
+            bookCollection = searchByID(int(query))
+            print(searchByAuthors("Satnam Alag"))
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+    else:
+        form = BookSearchForm()
+    return render(request, 'project/searchbook.html', {'form':form})
