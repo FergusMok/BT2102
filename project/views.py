@@ -110,12 +110,13 @@ def adminPage(request):
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
         return redirect('home')
 
-def userProfileView(request, id): 
+def userProfileView(request,id): 
     return render(request, 'project/userprofile.html')
 
-# def borrowView(request, bookid):
-#     print(bookid)
-#     return render(request, 'project/borrowed.html')
+def borrowView(request, bookid, userid):
+    print(bookid)
+    print(userid)
+    return render(request, 'project/borrowed.html')
 
 # def borrow(request, userID, bookID):
 #     if not Book.objects.get(bookid = bookID):
