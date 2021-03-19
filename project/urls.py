@@ -16,4 +16,7 @@ urlpatterns = [
     path('user/<int:id>/', views.userProfileView, name="user-profile"),
     path('borrowed/<int:bookid>/<int:userid>/', views.borrow, name="borrow"),
     path('searchbook/', views.searchView, name="search-book"),
+    path('returned/<int:bookid>/<int:userid>/', views.return, name="return"),
+    path('reserved/<int:bookid>/<int:userid>/', views.reserve, name="reserve"),
+    path('canceled/<int:bookid>/<int:userid>/', views.cancelRes, name="cancelRes"),
 ]

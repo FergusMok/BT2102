@@ -13,7 +13,7 @@ from pymongo import MongoClient
 from django import template
 register = template.Library()
 
-#form imports 
+#form imports
 from .forms import BookSearchForm
 
 #model imports
@@ -112,7 +112,7 @@ def register(request):
 def adminPage(request):
     if request.user.is_authenticated and request.user.is_superuser:
         print(Fine.objects.all())
-        context = { 
+        context = {
             "listOfFines": Fine.objects.all(),
             "listOfBorrow": Borrowreturn.objects.all(),
             "listOfReservations": Reservecancel.objects.all(),
@@ -154,6 +154,40 @@ def borrow(request, bookid, userid):
         cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
         return render(request, 'project/borrowed.html')
 
+
+def return(request, bookid, userid):
+    cursor = connection.cursor()
+    cursor.execute("UPDATE BorrowReturn br set returnDate = %s where %s = br.bookID and %s = br.userID", [datetime.today(), bookid, userid])
+    cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
+    if cursor.fetchall()[0][0]:
+        cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
+    return render(request, 'project/returned.html') #NEED TO MAKE RETURN BUTTON AND RETURNED HTML PAGE
+
+
+def reserve(request, bookid, userid):
+    cursor = connection.cursor()
+    cursor.execute("SELECT EXISTS(SELECT userID FROM fine f where %s = f.userID)", [userid])
+    if cursor.fetchall()[0][0]:
+        messages.warning(request, f'Please pay any outstanding fines before reserving a book.')
+        return bookview(request, bookid)
+    cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
+    if cursor.fetchall()[0][0]:
+        messages.warning(request, f'Unable to reserve. Book has been reserved by another user.')
+        return bookview(request, bookid)
+    cursor.execute("INSERT INTO ReserveCancel VALUES (%s, %s, (Select dueDate from book b where %s = b.bookID))", [userid, bookid, bookid])
+    cursor.execute("UPDATE Book b SET availability = FALSE WHERE %s = b.bookId", [bookid])
+    return render(request, 'project/reserved.html') #NEED TO MAKE RESERVE BUTTON AND RESERVED HTML PAGE
+
+
+def cancelRes(request, bookid, userid):
+    cursor = connection.cursor()
+    cursor.execute("Delete from ReserveCancel rc where %s = rc.userID and %s = rc.bookID", [userid, bookid])
+    cursor.execute("SELECT EXISTS(SELECT bookID, returnDate from BorrowReturn br where %s = br.bookID and returnDate is not null)", [bookid])
+    if cursor.fetchall()[0][0]:
+        cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
+    return render(request, 'project/canceled.html') #NEED TO MAKE CANCELRES BUTTON AND CANCELED HTML PAGE
+
+
 def searchView(request):
     if request.method == 'POST':
         form = BookSearchForm(request.POST)
@@ -169,13 +203,13 @@ def searchView(request):
 
 
 
-### Should work, but I can't test until reserve is done 
+### Should work, but I can't test until reserve is done
 def fineUsers(request):
     if request.user.is_superuser:
 
-        # 1.From BorrowReturn, query all the users that have null returnDate, AND have dueDate that is less than currentDate.   
+        # 1.From BorrowReturn, query all the users that have null returnDate, AND have dueDate that is less than currentDate.
         userList =  list(Borrowreturn.objects.filter(returndate = None, duedate__lte = datetime.today()))
-        
+
         # 2.Find these users, and search if they are in the Fine table.
         # if not, create a new entry, and add the fine.
         # if yes, then just add the fine to the current amount
