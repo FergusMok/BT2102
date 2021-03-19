@@ -1,5 +1,5 @@
-{% extends "project/base.html" %}
-<!DOCTYPE html>
+
+ <!DOCTYPE html>
 <html lang="en">
   <head>
     <!-- Required meta tags -->
@@ -16,9 +16,55 @@
 
     <title>Books</title>
   </head>
+
   <body>
-    <small class="text-muted">
-      <a class="ml-2" href="{% url 'login' %}">Log In Again!</a>
-    </small>
+    <div class = "container">
+      <div class="container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope = "col"> User ID </th>
+              <th scope="col"> Amount of Fine ($) </th>
+            </tr>
+          </thead>
+          {% for fine in listOfFines %}
+          <tbody>
+            <th scope = "row"> {{fine.userid.userid}} </th>
+            <td> {{fine.fineamount}} </td>
+          </tbody>
+          {% endfor %}
+      </div> 
+
+      <div class="container">
+        <thead>
+          <tr>
+            <th scope = "col"> User ID </th>
+            <th scope="col"> Book borrowed </th>
+          </tr>
+        </thead>
+        {% for user in listOfBorrow %}
+        <tbody>
+          <th scope = "row"> {{user.userid.userid}} </th>
+          <td> {{user.bookid.bookid}} </td>
+        </tbody>
+        {% endfor %}
+      </div>
+
+      <div class="container">
+        <thead>
+          <tr>
+            <th scope = "col"> User ID </th>
+            <th scope="col"> Book reserved </th>
+          </tr>
+        </thead>
+        {% for user in listOfReservations %}
+        <tbody>
+          <th scope = "row"> {{user.userid}} </th>
+          <td> {{user.bookid}} </td>
+        </tbody>
+        {% endfor %}
+      </div>
+  </div>
+
   </body>
 </html>

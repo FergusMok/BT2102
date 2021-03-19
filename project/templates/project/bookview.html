@@ -2,20 +2,19 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>{{book.title}}</title>
 
     <!-- Bootstrap -->
     <link
-    rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-    crossorigin="anonymous"
-  />
-
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -26,40 +25,48 @@
   </head>
   <!-- title, pageCount, publishedDate, thumbnailUrl, longDescription -->
   <body>
-
     {% block content %}
-      <!-- Book description -->
-      <div class="border-dark d-flex flex-column justify-content-around" style="width: 50%; margin:0 auto;">
-        <img src={{book.thumbnailUrl}} alt="", style = "height: 500px; width:500px">
-        <div class="card-body">
-          <h5 class="card-title">{{book.title}}</h5>
-          <p class="card-text">{{book.shortDescription}}</p>
+    <!-- Book description -->
+    <div class="border-dark d-flex flex-column justify-content-around" style="width: 50%; margin: 0 auto">
+      <img src="{{book.thumbnailUrl}}" alt="" , style="height: 500px; width: 500px" />
+      <div class="card-body">
+        <h5 class="card-title">{{book.title}}</h5>
+        <p class="card-text">{{book.shortDescription}}</p>
 
-          <a class="btn btn-lg btn-primary" href="{% url 'borrow' book.id user.id%}" role="button">Borrow</a>
-        </div>
+        {% if user.is_authenticated %}
+        <!-- If book is not borrowed-->
 
-        <dl class="row">
-            <dt class="col-sm-3">Title</dt>
-            <dd class="col-sm-9">{{book.title}}</dd>
+        <!-- If book is reserved-->
+        <!-- If you are the user that reserved it, render a borrow button -->
+        <!-- If you are not the user that reserved it, render "Unavailable, Reserved button"-->
+        <!-- Else, render "Borrow" button-->
+        <a class="btn btn-lg btn-primary" href="{% url 'borrow' book.id user.id%}" role="button">Borrow</a>
 
-            <dt class="col-sm-3">Number of pages</dt>
-            <dd class="col-sm-9">
-              <p>{{book.pageCount}}</p>
-            </dd>
+        <!-- If book is borrowed, render reserved button -->
+        <!-- If book is both borrowed and returned, render "Unavaialble, Reserved and Borrowed" -->
+        {% endif %}
+      </div>
 
-            <dt class="col-sm-3">Authors</dt>
-            <dd class="col-sm-9">{%for author in book.authors%}
-                {{author}},
-              {% endfor %}</dd>
+      <dl class="row">
+        <dt class="col-sm-3">Title</dt>
+        <dd class="col-sm-9">{{book.title}}</dd>
 
-            <dt class="col-sm-3 text-truncate">Description</dt>
-            <dd class="col-sm-9">{{book.longDescription}}</dd>
-          </dl>
+        <dt class="col-sm-3">Number of pages</dt>
+        <dd class="col-sm-9">
+          <p>{{book.pageCount}}</p>
+        </dd>
+
+        <dt class="col-sm-3">Authors</dt>
+        <dd class="col-sm-9">{%for author in book.authors%} {{author}}, {% endfor %}</dd>
+
+        <dt class="col-sm-3 text-truncate">Description</dt>
+        <dd class="col-sm-9">{{book.longDescription}}</dd>
+      </dl>
     </div>
     {% endblock%}
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<!--     <script
+    <!--     <script
       src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
       integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
       crossorigin="anonymous"
@@ -75,8 +82,10 @@
       crossorigin="anonymous"
     ></script> -->
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
-     crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>

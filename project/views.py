@@ -19,6 +19,8 @@ from .forms import BookSearchForm
 #model imports
 from .models import Users
 from .models import Fine
+from .models import Borrowreturn
+from .models import Reservecancel
 
 # Create your views here.
 client = MongoClient("mongodb+srv://Group1:BT2102noice@bt2102g1.hckrp.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
@@ -39,7 +41,7 @@ def searchByID(ID):
 
 
 def searchByAuthors(author):
-    authorRegex = re.compile("." + author + ".", re.IGNORECASE)
+    authorRegex = re.compile(".*" + author + ".*", re.IGNORECASE)
     collection = []
     for book in db.find({"authors" : authorRegex}):
         collection.append(book)
@@ -47,7 +49,7 @@ def searchByAuthors(author):
 
 
 def searchByDescription(description):
-    authorRegex = re.compile("." + description + ".", re.IGNORECASE)
+    authorRegex = re.compile(".*" + description + ".*", re.IGNORECASE)
     collection = []
     for book in db.find({"longDescription" : authorRegex} or {"shortDescription" : authorRegex} ):
         collection.append(book)
@@ -55,7 +57,7 @@ def searchByDescription(description):
 
 
 def searchByISBN(ISBN):
-    authorRegex = re.compile("." + ISBN + ".", re.IGNORECASE)
+    authorRegex = re.compile(".*" + ISBN + ".*", re.IGNORECASE)
     collection = []
     for book in db.find({"isbn" : authorRegex}):
         collection.append(book)
@@ -109,7 +111,13 @@ def register(request):
 
 def adminPage(request):
     if request.user.is_authenticated and request.user.is_superuser:
-        return render(request, 'project/adminPage.html', {})
+        print(Fine.objects.all())
+        context = { 
+            "listOfFines": Fine.objects.all(),
+            "listOfBorrow": Borrowreturn.objects.all(),
+            "listOfReservations": Reservecancel.objects.all(),
+        }
+        return render(request, 'project/adminPage.html', context)
     else:
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
         return redirect('home')
@@ -153,7 +161,41 @@ def searchView(request):
             query = form.cleaned_data["query"]
             bookCollection = searchByID(int(query))
             print(searchByAuthors("Satnam Alag"))
+
             return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
     else:
         form = BookSearchForm()
     return render(request, 'project/searchbook.html', {'form':form})
+
+
+
+### Should work, but I can't test until reserve is done 
+def fineUsers(request):
+    if request.user.is_superuser:
+
+        # 1.From BorrowReturn, query all the users that have null returnDate, AND have dueDate that is less than currentDate.   
+        userList =  list(Borrowreturn.objects.filter(returndate = None, duedate__lte = datetime.today()))
+        
+        # 2.Find these users, and search if they are in the Fine table.
+        # if not, create a new entry, and add the fine.
+        # if yes, then just add the fine to the current amount
+        for user in userList:
+            fineUser = Fine.objects.get(userid = user.userid)
+            if fineUser:
+                fineUser.fine += 1
+                fineUser.save()
+            else:
+                newUser = Fine.objects.create(userid = user.userid, fine = 1);
+                newUser.save()
+
+        # 3. Using these users, go to the ReserveCancel table, and delete them from the table.
+        for user in userList:
+            reserveUser = Reservecancel.objects.get(userid = user.userid)
+            if reserveUser:
+                reserveUser.delete()
+
+        return redirect('home')
+
+    else:
+        messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
+        return redirect('home')
