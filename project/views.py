@@ -14,7 +14,7 @@ from django import template
 register = template.Library()
 
 #form imports
-from .forms import BookSearchForm
+from .forms import BookSearchForm, DescriptionSearchForm
 
 #model imports
 from .models import Users
@@ -155,13 +155,13 @@ def borrow(request, bookid, userid):
         return render(request, 'project/borrowed.html')
 
 
-def return(request, bookid, userid):
-    cursor = connection.cursor()
-    cursor.execute("UPDATE BorrowReturn br set returnDate = %s where %s = br.bookID and %s = br.userID", [datetime.today(), bookid, userid])
-    cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
-    if cursor.fetchall()[0][0]:
-        cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
-    return render(request, 'project/returned.html') #NEED TO MAKE RETURN BUTTON AND RETURNED HTML PAGE
+# def return(request, bookid, userid):
+#     cursor = connection.cursor()
+#     cursor.execute("UPDATE BorrowReturn br set returnDate = %s where %s = br.bookID and %s = br.userID", [datetime.today(), bookid, userid])
+#     cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
+#     if cursor.fetchall()[0][0]:
+#         cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
+#     return render(request, 'project/returned.html') #NEED TO MAKE RETURN BUTTON AND RETURNED HTML PAGE
 
 
 def reserve(request, bookid, userid):
@@ -192,14 +192,23 @@ def searchView(request):
     if request.method == 'POST':
         form = BookSearchForm(request.POST)
         if form.is_valid():
-            query = form.cleaned_data["query"]
-            bookCollection = searchByID(int(query))
-            print(searchByAuthors("Satnam Alag"))
-
+            authorSearch = form.cleaned_data["query"]
+            bookCollection = searchByAuthors(authorSearch)
             return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
     else:
         form = BookSearchForm()
     return render(request, 'project/searchbook.html', {'form':form})
+
+def searchView2(request):
+    if request.method == 'POST':
+        form = DescriptionSearchForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data["query"]
+            bookCollection = searchByDescription(query)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+    else:
+        form2 = DescriptionSearchForm()
+    return render(request, 'project/searchbook2.html', {'form2':form2})
 
 
 

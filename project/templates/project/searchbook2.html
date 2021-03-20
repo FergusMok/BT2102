@@ -1,4 +1,4 @@
-{% extends "project/base.html" %} 
+{% extends "project/base.html" %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -19,16 +19,17 @@
   <!-- title, pageCount, publishedDate, thumbnailUrl, longDescription -->
   <body>
   	{% block content %}
+
   	<div class="border-dark d-flex flex-column justify-content-around" style="width: 50%; margin: 0 auto; font-size: 2rem;">
-<form action="{%url 'search-book'%}" method="post">
+<form action="{%url 'search-book2'%}" method="post">
 	<div class="form-group">
     	{% csrf_token %}
-    	{{ form }}
+    	{{ form2 }}
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 <div style="margin-top: 1rem; font-size: 1.2rem;">
-	<a href="{%url 'search-book2'%}">Click here to search by book description</a>
+	<a href="{%url 'search-book'%}">Click here to search by book author</a>
 </div>
 </div>
 
@@ -42,4 +43,3 @@
     ></script>
   </body>
 </html>
-

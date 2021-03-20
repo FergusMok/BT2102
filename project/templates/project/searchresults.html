@@ -1,3 +1,4 @@
+  {% extends "project/base.html" %}
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
@@ -13,7 +14,7 @@
 
     <title>Books</title>
   </head>
-<h1>Search results</h1>
+    {% block content %}
 {% for book in bookCollection %} {% if forloop.counter0|divisibleby:5 %}
       <div class="row text-center d-flex justify-content-around">
         {% endif %}
@@ -42,7 +43,7 @@
       <!-- row closing -->
       <hr />
       {% endif %} {% endfor %}
-
+{% endblock%}
        <script
       src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
       integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"

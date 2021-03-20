@@ -4,4 +4,17 @@ from django.contrib.auth.forms import UserCreationForm
 
 
 class BookSearchForm(forms.Form):
-	query = forms.CharField(label="Search",max_length = 100)
+	query = forms.CharField(label="Search By Author",max_length = 100, 
+		widget=forms.TextInput(attrs={
+			'class':'form-control',
+			'placeholder':'Enter Text Here'
+			})
+		)
+	
+class DescriptionSearchForm(forms.Form):
+		query = forms.CharField(label="Search By Description", 
+		widget=forms.TextInput(attrs={
+			'class':'form-control',
+			'placeholder':'Enter Text Here'
+			})
+		)
