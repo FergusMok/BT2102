@@ -134,6 +134,9 @@ def borrowView(request, bookid, userid):
 
 def borrow(request, bookid, userid):
     cursor = connection.cursor()
+    cusror.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)")
+    if not cursor.fetchall()[0][0]:
+        cursor.execute("INSERT INTO Book VALUES (%s, %s)", [bookid, True])
     cursor.execute("SELECT available FROM Book b WHERE %s = b.bookID", [bookid])
     if not cursor.fetchall()[0][0]:
         messages.warning(request, f'Book has been borrowed.')
@@ -155,17 +158,20 @@ def borrow(request, bookid, userid):
         return render(request, 'project/borrowed.html')
 
 
-# def return(request, bookid, userid):
-#     cursor = connection.cursor()
-#     cursor.execute("UPDATE BorrowReturn br set returnDate = %s where %s = br.bookID and %s = br.userID", [datetime.today(), bookid, userid])
-#     cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
-#     if cursor.fetchall()[0][0]:
-#         cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
-#     return render(request, 'project/returned.html') #NEED TO MAKE RETURN BUTTON AND RETURNED HTML PAGE
+def returnBook(request, bookid, userid):
+    cursor = connection.cursor()
+    cursor.execute("UPDATE BorrowReturn br set returnDate = %s where %s = br.bookID and %s = br.userID", [datetime.today(), bookid, userid])
+    cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
+    if cursor.fetchall()[0][0]:
+        cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
+    return render(request, 'project/returned.html') #NEED TO MAKE RETURN BUTTON AND RETURNED HTML PAGE
 
 
 def reserve(request, bookid, userid):
     cursor = connection.cursor()
+    cusror.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)")
+    if not cursor.fetchall()[0][0]:
+        cursor.execute("INSERT INTO Book VALUES (%s, %s)", [bookid, True])
     cursor.execute("SELECT EXISTS(SELECT userID FROM fine f where %s = f.userID)", [userid])
     if cursor.fetchall()[0][0]:
         messages.warning(request, f'Please pay any outstanding fines before reserving a book.')

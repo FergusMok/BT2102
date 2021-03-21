@@ -17,7 +17,7 @@ urlpatterns = [
     path('borrowed/<int:bookid>/<int:userid>/', views.borrow, name="borrow"),
     path('searchbook/', views.searchView, name="search-book"),
     path('searchbook2/', views.searchView2, name="search-book2"),
-    #path('returned/<int:bookid>/<int:userid>/', views.return, name="return"),
+    #path('returned/<int:bookid>/<int:userid>/', views.returnBook, name="returnBook"),
     path('reserved/<int:bookid>/<int:userid>/', views.reserve, name="reserve"),
     path('canceled/<int:bookid>/<int:userid>/', views.cancelRes, name="cancelRes"),
 ]

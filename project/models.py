@@ -20,7 +20,6 @@ class Admins(models.Model):
 class Book(models.Model):
     bookid = models.AutoField(db_column='bookID', primary_key=True)  # Field name made lowercase.
     available = models.IntegerField()
-    userid = models.IntegerField(db_column='userID', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -87,4 +86,3 @@ class Users(models.Model):
     class Meta:
         managed = False
         db_table = 'Users'
-
