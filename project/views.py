@@ -62,6 +62,24 @@ def searchByISBN(ISBN):
     for book in db.find({"isbn" : authorRegex}):
         collection.append(book)
     return collection
+def searchByCategory(category):
+    authorRegex = re.compile(".*" + category + ".*", re.IGNORECASE)
+    collection = []
+    for book in db.find({"categories" : authorRegex}):
+        collection.append(book)
+    return collection
+def searchByPublisher(publisher):
+    authorRegex = re.compile(".*" + publisher + ".*", re.IGNORECASE)
+    collection = []
+    for book in db.find({"publisher" : authorRegex}):
+        collection.append(book)
+    return collection
+def searchByYear(year):
+    collection = []
+    for book in db.find({ '$expr': { "$eq" : [{"$year": "$publishedDate"}, year]}}):
+        collection.append(book)
+    return collection
+
 
 def searchByAuthorsAndDescription(author,description):
     arr1 = searchByAuthors(author)
