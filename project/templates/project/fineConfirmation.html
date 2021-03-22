@@ -17,14 +17,14 @@
     <title>Books</title>
   </head>
   <body>
-    <!-- Flash message for sucessful login / registeration -->
-    <!-- title, thumbnailUrl, authors, categories, longDescription -->
     {% block content %}
     <div class="container-fluid">
       <p>Are you sure you want to delete these reservations and add these fine to the users?</p>
       <div class="row">
+        <!-- If you want to have just one table, you adjust all these 5s to 11 / 12, and then you don't need the above div row -->
+        <!-- The tables are at http://localhost:8000/fine, login with root, password 12345-->
         <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
-          <h2 class="sub-header">Subtitle</h2>
+          <h2 class="sub-header">Delete reservations</h2>
           <div class="table-responsive">
             <table class="table table-striped">
               <thead>
@@ -44,7 +44,7 @@
         </div>
 
         <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
-          <h2 class="sub-header">Latest Incidents</h2>
+          <h2 class="sub-header">Fines to add</h2>
           <div class="table-responsive">
             <table class="table table-striped">
               <thead>
