@@ -1,0 +1,92 @@
+{% extends "project/base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+
+    <title>Books</title>
+  </head>
+  <body>
+    <!-- Flash message for sucessful login / registeration -->
+    <!-- title, thumbnailUrl, authors, categories, longDescription -->
+    {% block content %}
+    <div class="container-fluid">
+      <p>Are you sure you want to delete these reservations and add these fine to the users?</p>
+      <div class="row">
+        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+          <h2 class="sub-header">Subtitle</h2>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col-md-1">User ID</th>
+                  <th scope="col-md-2">Book ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for userid, bookid in userReservations.items %}
+                <th scope="row">{{userid}}</th>
+                <td>{{bookid}}</td>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+          <h2 class="sub-header">Latest Incidents</h2>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col-md-1">User ID</th>
+                  <th scope="col-md-2">Amount of Fine ($)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for userid, amount in userFines.items %}
+                <th scope="row">{{userid}}</th>
+                <td>{{amount}}</td>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center">
+        <a class="btn btn-lg btn-primary" href="{% url 'home' %}" role="button">Cancel</a>
+        <a class="btn btn-lg btn-primary" href="{% url 'actuallyFine' %}" role="button">Confirm</a>
+      </div>
+    </div>
+
+    <!-- container
+    {% endblock%}
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

@@ -25,7 +25,9 @@
   </head>
   <!-- title, pageCount, publishedDate, thumbnailUrl, longDescription -->
   <body>
-    {% block content %}
+    {% block content %} {% if messages %} {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %} {% endif %}
     <!-- Book description -->
     <div class="border-dark d-flex flex-column justify-content-around" style="width: 50%; margin: 0 auto">
       <img src="{{book.thumbnailUrl}}" alt="" , style="height: 500px; width: 500px" />
@@ -34,16 +36,8 @@
         <p class="card-text">{{book.shortDescription}}</p>
 
         {% if user.is_authenticated %}
-        <!-- If book is not borrowed-->
-
-        <!-- If book is reserved-->
-        <!-- If you are the user that reserved it, render a borrow button -->
-        <!-- If you are not the user that reserved it, render "Unavailable, Reserved button"-->
-        <!-- Else, render "Borrow" button-->
         <a class="btn btn-lg btn-primary" href="{% url 'borrow' book.id user.id%}" role="button">Borrow</a>
-
-        <!-- If book is borrowed, render reserved button -->
-        <!-- If book is both borrowed and returned, render "Unavaialble, Reserved and Borrowed" -->
+        <a class="btn btn-lg btn-primary" href="{% url 'reserve' book.id user.id%}" role="button">Reserve</a>
         {% endif %}
       </div>
 
@@ -63,7 +57,7 @@
         <dd class="col-sm-9">{{book.longDescription}}</dd>
       </dl>
     </div>
-    {% endblock%}
+    {% endblock %}
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <!--     <script

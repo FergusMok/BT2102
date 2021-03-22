@@ -79,14 +79,12 @@ def searchByYear(year):
     for book in db.find({ '$expr': { "$eq" : [{"$year": "$publishedDate"}, year]}}):
         collection.append(book)
     return collection
-
-
 def searchByAuthorsAndDescription(author,description):
     arr1 = searchByAuthors(author)
     arr2 = searchByDescription(description)
     arr3 = [value for value in arr1 if value in arr2]
     return arr3
-
+    
 def index(request):
     bookCollection = displayBookCollection()
     context = {
@@ -152,12 +150,12 @@ def borrowView(request, bookid, userid):
 
 def borrow(request, bookid, userid):
     cursor = connection.cursor()
-    cusror.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)")
+    cursor.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)")
     if not cursor.fetchall()[0][0]:
         cursor.execute("INSERT INTO Book VALUES (%s, %s)", [bookid, True])
     cursor.execute("SELECT available FROM Book b WHERE %s = b.bookID", [bookid])
     if not cursor.fetchall()[0][0]:
-        messages.warning(request, f'Book has been borrowed.')
+        messages.warning(request, f'Book has been borrowed.') # Maybe can change to "not available", because it includes the case where its reserved too
         return bookview(request, bookid)
     cursor.execute("SELECT EXISTS(SELECT userID FROM Fine WHERE userID = %s)", [userid])
     if cursor.fetchall()[0][0]:
@@ -176,18 +174,9 @@ def borrow(request, bookid, userid):
         return render(request, 'project/borrowed.html')
 
 
-def returnBook(request, bookid, userid):
-    cursor = connection.cursor()
-    cursor.execute("UPDATE BorrowReturn br set returnDate = %s where %s = br.bookID and %s = br.userID", [datetime.today(), bookid, userid])
-    cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
-    if cursor.fetchall()[0][0]:
-        cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
-    return render(request, 'project/returned.html') #NEED TO MAKE RETURN BUTTON AND RETURNED HTML PAGE
-
-
 def reserve(request, bookid, userid):
     cursor = connection.cursor()
-    cusror.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)")
+    cursor.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)")
     if not cursor.fetchall()[0][0]:
         cursor.execute("INSERT INTO Book VALUES (%s, %s)", [bookid, True])
     cursor.execute("SELECT EXISTS(SELECT userID FROM fine f where %s = f.userID)", [userid])
@@ -201,6 +190,16 @@ def reserve(request, bookid, userid):
     cursor.execute("INSERT INTO ReserveCancel VALUES (%s, %s, (Select dueDate from book b where %s = b.bookID))", [userid, bookid, bookid])
     cursor.execute("UPDATE Book b SET availability = FALSE WHERE %s = b.bookId", [bookid])
     return render(request, 'project/reserved.html') #NEED TO MAKE RESERVE BUTTON AND RESERVED HTML PAGE
+
+
+
+def returnBook(request, bookid, userid):
+    cursor = connection.cursor()
+    cursor.execute("UPDATE BorrowReturn br set returnDate = %s where %s = br.bookID and %s = br.userID", [datetime.today(), bookid, userid])
+    cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
+    if cursor.fetchall()[0][0]:
+        cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
+    return render(request, 'project/returned.html') #NEED TO MAKE RETURN BUTTON AND RETURNED HTML PAGE
 
 
 def cancelRes(request, bookid, userid):
@@ -222,6 +221,7 @@ def searchView(request):
     else:
         form = BookSearchForm()
     return render(request, 'project/searchbook.html', {'form':form})
+    ## If you need a suggestion, you can use a radio button group
 
 def searchView2(request):
     if request.method == 'POST':
@@ -234,6 +234,45 @@ def searchView2(request):
         form2 = DescriptionSearchForm()
     return render(request, 'project/searchbook2.html', {'form2':form2})
 
+def searchExpectedDueDate(userid): 
+    # If reserved, return reserve date
+    # If borrowed, return borrow date
+    # If none, return "None"
+    reservation = Reservecancel.objects.get(userid = userid)
+    borrow = Borrowreturn.objects.get(userid = userid)
+    if reservation:
+        return reservation.reservedate
+    elif borrow:
+        return borrow.returndate
+    else:
+        return "No due date"
+
+
+
+# Not in use now, if we need one 
+def detailedSearchAvailability():
+        #If book is not borrowed
+
+           #If book is reserved
+                #If you are the user that reserved it
+                    # If user has borrowed already borrowed 4 books
+                        # Render "Sorry, you have reached your borrowing quota."                        -- Case 0
+                    # Else
+                        # Render a borrow button, that will link to borrow function                     -- Case 1
+                #Else if you are not the user that reserved it, render "Unavailable, book reserved"     -- Case 2
+           # Else, if book is not reserved,
+                # If user has borrowed already borrowed 4 books
+                    # Render "Sorry, you have reached your borrowing quota."                            -- Case 0
+                # Else
+                    # Render a borrow button, that will link to borrow function                         -- Case 1
+
+
+        #Else if book is borrowed,  
+            #If book is reserved "Unavailable to reserve or borrow"                                     -- Case 2
+            #Else if book not reserved, render reserved button                                          -- Case 3
+    return None
+
+        
 
 
 ### Should work, but I can't test until reserve is done
@@ -246,23 +285,64 @@ def fineUsers(request):
         # 2.Find these users, and search if they are in the Fine table.
         # if not, create a new entry, and add the fine.
         # if yes, then just add the fine to the current amount
-        for user in userList:
-            fineUser = Fine.objects.get(userid = user.userid)
-            if fineUser:
-                fineUser.fine += 1
-                fineUser.save()
-            else:
-                newUser = Fine.objects.create(userid = user.userid, fine = 1);
-                newUser.save()
+        userFines = {}
+        userReservations = {}
 
+        for user in userList:
+            userFines[user.userid] = userFines.get(user.userid, 0) + 1
         # 3. Using these users, go to the ReserveCancel table, and delete them from the table.
         for user in userList:
             reserveUser = Reservecancel.objects.get(userid = user.userid)
             if reserveUser:
-                reserveUser.delete()
+                userReservations[user.userid] = reserveUser.bookid.bookid
+        context = { 
+            'userFines': userFines,
+            'userReservations': userReservations,
+        }
+        return render(request, 'project/fineConfirmation.html', context )
 
+    else:
+        messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
+        return redirect('home')
+
+def actuallyFineUsers(request):
+            #fineUser = Fine.objects.get(userid = user.userid)
+            #if fineUser:
+            #    fineUser.fine += 1
+            #    fineUser.save()
+            #else:
+            #    newUser = Fine.objects.create(userid = user.userid, fine = 1);
+            #    newUser.save()
+
+            #reserveUser = Reservecancel.objects.get(userid = user.userid)
+            #if reserveUser:
+            #    reserveUser.delete()
+
+    if request.user.is_superuser:
+        userList =  list(Borrowreturn.objects.filter(returndate = None, duedate__lte = datetime.today()))
+        userFines = {}
+        userReservations = {}
+        for user in userList:
+            userFines[user.userid] = userFines.get(user.userid, 0) + 1
+        # 3. Using these users, go to the ReserveCancel table, and delete them from the table.
+        for user in userList:
+            reserveUser = Reservecancel.objects.get(userid = user.userid)
+            if reserveUser:
+                userReservations[user.userid] = reserveUser.bookid.bookid
+        context = { 
+            'userFines': userFines,
+            'userReservations': userReservations,
+        }
+        for userid, fineAmount in userFines.items():
+            fineUser = fine.objects.get(userid = user.userid)
+            fineUser.fine += fineAmount
+            fineUser.save()
+        for userid, bookid in userReservations.items():
+            reserveUser = Reservecancel.objects.get(userid = user.userid, bookid = bookid)
+            reserveUser.delete()
         return redirect('home')
 
     else:
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
         return redirect('home')
+

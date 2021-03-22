@@ -7,6 +7,7 @@ from project import views
 urlpatterns = [
     path('', views.index, name = "home"),
     path('fine/', views.fineUsers, name = 'fineUsers'),
+    path('actuallyFine/', views.actuallyFineUsers, name = 'actuallyFine'),
     path('register/', views.register, name = 'register'),
     path('login/', auth_views.LoginView.as_view(template_name = 'project/login.html'), name = 'login'),
     path('logout/', auth_views.LogoutView.as_view(template_name = 'project/logout.html'), name = 'logout'),
