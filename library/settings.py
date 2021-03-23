@@ -25,7 +25,7 @@ SECRET_KEY = '!!toh(0r=hin=2svq5ele17&fb3e_4!7y&wejws226t7)74t*q'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -147,7 +147,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-
+STATIC_ROOT = 'static'
 STATIC_URL = '/static/'
 CRISPY_TEMPLATE_PACK = "bootstrap4"
 
