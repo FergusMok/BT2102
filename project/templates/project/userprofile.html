@@ -34,7 +34,7 @@
 
 <body>
   <div class="container-fluid">
-    <p>Are you sure you want to delete these reservations and add these fine to the users?</p>
+    <h1>{{userid}}'s profile</h1>
     <div class="row">
       <!-- If you want to have just one table, you adjust all these 5s to 11 / 12, and then you don't need the above div row -->
       <!-- The tables are at http://localhost:8000/fine, login with root, password 12345-->
@@ -44,17 +44,28 @@
           <table class="table table-striped">
             <thead>
               <tr>
-                <th scope="col-md-1">Book Title</th>
+                <th scope="col-md-1">Book ID</th>
+                <th scope="col-md-1">Expected Due Date</th>
                 <th scope="col-md-2">Return</th>
                 <th scope="col-md-2">Extend</th>
               </tr>
             </thead>
+            {% for borrowObject in borrowList %}
             <tbody>
-              {% for borrowObject in borrowList %}
-              <th scope="row">{{userid}}</th>
-              <td>{{bookid}}</td>
-              {% endfor %}
+              <th scope="row">{{borrowObject.bookid.bookid}}</th>
+              <td>{{borrowObject.duedate}}</td>
+              <td>
+                <a href="{% url 'returnBook' borrowObject.bookid.bookid userid %}">
+                  <div style="height: 100%; width: 100%">Return</div>
+                </a>
+              </td>
+              <td>
+                <a href="{% url 'extend' borrowObject.bookid.bookid userid%}">
+                  <div style="height: 100%; width: 100%">Extend</div>
+                </a>
+              </td>
             </tbody>
+            {% endfor %}
           </table>
         </div>
       </div>
@@ -69,12 +80,16 @@
                 <th scope="col-md-2">Cancel</th>
               </tr>
             </thead>
+            {% for reserveObject in reserveList %}
             <tbody>
-              {% for reserveObject in reserveList %}
-              <th scope="row">{{userid}}</th>
-              <td>{{amount}}</td>
-              {% endfor %}
+              <th scope="row">{{reserveObject.bookid.bookid}}</th>
+              <td>
+                <a href="{% url 'cancelRes' reserveObject.bookid.bookid userid  %}">
+                  <div style="height: 100%; width: 100%">Cancel</div>
+                </a>
+              </td>
             </tbody>
+            {% endfor %}
           </table>
         </div>
       </div>

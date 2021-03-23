@@ -43,7 +43,11 @@
               </thead>
               {% for user in listOfBorrow %}
               <tbody>
-                <th scope="row">{{user.userid.userid}}</th>
+                <th scope="row">
+                  <a class="nav-link" href="{% url 'user-profile' user.userid.userid %}">
+                    <div style="height: 100%; width: 100%">{{user.userid.userid}}</div>
+                  </a>
+                </th>
                 <td>{{user.bookid.bookid}}</td>
                 {% if user.extend == 1 %}
                 <td>Extended Once</td>
@@ -69,9 +73,12 @@
                 </tr>
               </thead>
               {% for user in listOfReservations %}
-
               <tbody>
-                <th scope="row">{{user.userid.userid}}</th>
+                <th scope="row">
+                  <a href="{% url 'user-profile' user.userid.userid %}">
+                    <div style="height: 100%; width: 100%">{{user.userid.userid}}</div>
+                  </a>
+                </th>
                 <td>{{user.bookid.bookid}}</td>
                 <td>{{user.reservedate}}</td>
               </tbody>
@@ -90,12 +97,16 @@
                   <th scope="col-md-2">Amount of Fine ($)</th>
                 </tr>
               </thead>
+              {% for fine in listOfFines %}
               <tbody>
-                {% for fine in listOfFines %}
-                <th scope="row">{{fine.userid.userid}}</th>
+                <th scope="row">
+                  <a href="{url 'user-profile' fine.userid.userid}">
+                    <div style="height: 100%; width: 100%">{{fine.userid.userid}}</div>
+                  </a>
+                </th>
                 <td>{{fine.fineamount}}</td>
-                {% endfor %}
               </tbody>
+              {% endfor %}
             </table>
           </div>
         </div>

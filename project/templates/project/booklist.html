@@ -31,7 +31,7 @@
             <img src="{{book.thumbnailUrl}}" alt="" , style="height: 60%" />
             <div class="card-content d-flex flex-column justify-content-around" style="height: 30%">
               <h6>{{ book.title }}</h6>
-              <a type="button" href="{% url 'book-detail' book.id%}" class="btn btn-outline-success">View Book</a>
+              <a type="button" href="{% url 'book-detail' book.id %}" class="btn btn-outline-success">View Book</a>
               <!--                          <div class="text-left ml-3" style="font-size: 12px;">
                            {% for author in book.authors %}
                            {% if author != "" %}

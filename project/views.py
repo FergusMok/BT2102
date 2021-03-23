@@ -142,9 +142,9 @@ def adminPage(request):
         return redirect('home')
 
 def userProfileView(request,id):
-
     context = {
-        "borrowList": list(Borrowreturn.objects.filter(userid = id)),
+        "userid": id,
+        "borrowList": list(Borrowreturn.objects.filter(userid = id, returndate = None)),
         "reserveList": list(Reservecancel.objects.filter(userid = id)),
     }
 
@@ -170,10 +170,11 @@ def borrow(request, bookid, userid):
             cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() + timedelta(days=28)).strftime('%Y-%m-%d')])
             cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
             cursor.execute("DELETE from ReserveCancel rc where %s = rc.userID and %s = rc.bookID", [userid, bookid])
-            return render(request, 'project/borrowed.html')
+            messages.success(request, f'Book has been borrowed!')
+            return redirect('home')
         else: #BOOK IS RESERVED BY ANOTHER USER
             messages.warning(request, f'Book is not available for borrowing.')
-            return bookview(request, bookid)
+            return redirect('home')
     cursor.execute("SELECT EXISTS(SELECT userID FROM Fine WHERE userID = %s)", [userid])
     if cursor.fetchall()[0][0]: #IF USER HAS FINE
         messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
@@ -188,7 +189,8 @@ def borrow(request, bookid, userid):
             cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
         cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() + timedelta(days=28)).strftime('%Y-%m-%d')])
         cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
-        return render(request, 'project/borrowed.html')
+        messages.success(request, f'Book has been borrowed!')
+        return redirect('home')
 
 
 def extend(request, bookid, userid):
@@ -206,7 +208,8 @@ def extend(request, bookid, userid):
         messages.warning(request, f'Unable to extend. Book has already been extended.')
         return bookview(request, bookid)
     cursor.execute("UPDATE BorrowReturn br SET extend = TRUE, dueDate = DATE_ADD(br.dueDate, INTERVAL 28 DAY) WHERE %s = br.bookID and %s = br.userID", [bookid, userid])
-    return redner(request, 'project/extended.html')
+    messages.success(request, f'Book due date has been extended!')
+    return redirect('home')
 
 
 def reserve(request, bookid, userid):
@@ -224,7 +227,8 @@ def reserve(request, bookid, userid):
         return bookview(request, bookid)
     cursor.execute("INSERT INTO ReserveCancel VALUES (%s, %s, (Select dueDate from BorrowReturn br where %s = br.bookID))", [userid, bookid, bookid])
     cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
-    return render(request, 'project/reserved.html') #NEED TO MAKE RESERVE BUTTON AND RESERVED HTML PAGE
+    messages.success(request, f'Book has been reserved!')
+    return redirect('home')
 
 
 
@@ -234,7 +238,8 @@ def returnBook(request, bookid, userid):
     cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
     if not cursor.fetchall()[0][0]: #IF BOOK IS RESERVED BY ANOTHER USER
         cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
-    return render(request, 'project/returned.html') #NEED TO MAKE RETURN BUTTON AND RETURNED HTML PAGE
+    messages.success(request, f'Book has been returned!')
+    return redirect('home')
 
 
 def cancelRes(request, bookid, userid):
@@ -243,7 +248,8 @@ def cancelRes(request, bookid, userid):
     cursor.execute("SELECT EXISTS(SELECT bookID, returnDate from BorrowReturn br where %s = br.bookID and returnDate is not null)", [bookid])
     if not cursor.fetchall()[0][0]: #IF BOOK IS CURRENTLY BEING BORROWED BY ANOTHER USER
         cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
-    return render(request, 'project/canceled.html') #NEED TO MAKE CANCELRES BUTTON AND CANCELED HTML PAGE
+    messages.success(request, f'Book reservation has been cancelled!')
+    return redirect('home')
 
 
 def searchView(request):

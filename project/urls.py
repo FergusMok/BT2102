@@ -22,7 +22,7 @@ urlpatterns = [
     path('searchbookcategory/', views.categorySearchView, name="search-book-category"),
     path('searchbookyear/', views.yearSearchView, name="search-book-year"),
     path('returned/<int:bookid>/<int:userid>/', views.returnBook, name="returnBook"),
+    path('cancelled/<int:bookid>/<int:userid>/', views.cancelRes, name="cancelRes"),
     path('reserved/<int:bookid>/<int:userid>/', views.reserve, name="reserve"),
-    path('canceled/<int:bookid>/<int:userid>/', views.cancelRes, name="cancelRes"),
     path('extended/<int:bookid>/<int:userid>/', views.extend, name = "extend"),
 ]
