@@ -142,7 +142,13 @@ def adminPage(request):
         return redirect('home')
 
 def userProfileView(request,id):
-    return render(request, 'project/userprofile.html')
+
+    context = {
+        "borrowList": list(Borrowreturn.objects.filter(userid = id)),
+        "reserveList": list(Reservecancel.objects.filter(userid = id)),
+    }
+
+    return render(request, 'project/userprofile.html', context)
 
 
 def borrow(request, bookid, userid):

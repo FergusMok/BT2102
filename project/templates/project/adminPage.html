@@ -1,5 +1,6 @@
+{% extends "project/base.html" %}
 
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <!-- Required meta tags -->
@@ -19,54 +20,88 @@
   {% block content %}
 
   <body>
-    <div class = "container">
-      <div class="container">
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope = "col"> User ID </th>
-              <th scope="col"> Amount of Fine ($) </th>
-            </tr>
-          </thead>
-          {% for fine in listOfFines %}
-          <tbody>
-            <th scope = "row"> {{fine.userid.userid}} </th>
-            <td> {{fine.fineamount}} </td>
-          </tbody>
-          {% endfor %}
-      </div> 
+    <!--     <button type="button" class="btn btn-outline-primary">Borrow</button>
+    <button type="button" class="btn btn-outline-primary">Reservations</button>
+    <button type="button" class="btn btn-outline-primary">Fines</button>
+ -->
+    <div class="container-fluid">
+      <div class="row">
+        <!-- If you want to have just one table, you adjust all these 5s to 11 / 12, and then you don't need the above div row -->
+        <!-- The tables are at http://localhost:8000/fine, login with root, password 12345-->
 
-      <div class="container">
-        <thead>
-          <tr>
-            <th scope = "col"> User ID </th>
-            <th scope="col"> Book borrowed </th>
-          </tr>
-        </thead>
-        {% for user in listOfBorrow %}
-        <tbody>
-          <th scope = "row"> {{user.userid.userid}} </th>
-          <td> {{user.bookid.bookid}} </td>
-        </tbody>
-        {% endfor %}
+        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+          <h2 class="sub-header">All borrowed books</h2>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col-md-1">User ID</th>
+                  <th scope="col-md-1">Book ID</th>
+                  <th scope="col-md-2">Extended</th>
+                  <th scope="col-md-2">Due Date</th>
+                </tr>
+              </thead>
+              {% for user in listOfBorrow %}
+              <tbody>
+                <th scope="row">{{user.userid.userid}}</th>
+                <td>{{user.bookid.bookid}}</td>
+                {% if user.extend == 1 %}
+                <td>Extended Once</td>
+                {% else %}
+                <td>Never</td>
+                {%endif%}
+                <td>{{user.duedate}}</td>
+              </tbody>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+          <h2 class="sub-header">All reserved books</h2>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col-md-1">User ID</th>
+                  <th scope="col-md-1">Book ID</th>
+                  <th scope="col-md-2">Reserved till-date</th>
+                </tr>
+              </thead>
+              {% for user in listOfReservations %}
+
+              <tbody>
+                <th scope="row">{{user.userid.userid}}</th>
+                <td>{{user.bookid.bookid}}</td>
+                <td>{{user.reservedate}}</td>
+              </tbody>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+          <h2 class="sub-header">All fines</h2>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col-md-1">Book ID</th>
+                  <th scope="col-md-2">Amount of Fine ($)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for fine in listOfFines %}
+                <th scope="row">{{fine.userid.userid}}</th>
+                <td>{{fine.fineamount}}</td>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="container">
-        <thead>
-          <tr>
-            <th scope = "col"> User ID </th>
-            <th scope="col"> Book reserved </th>
-          </tr>
-        </thead>
-        {% for user in listOfReservations %}
-        <tbody>
-          <th scope = "row"> {{user.userid}} </th>
-          <td> {{user.bookid}} </td>
-        </tbody>
-        {% endfor %}
-      </div>
-  </div>
-  {% endblock%}
-
+    {% endblock%}
   </body>
 </html>
