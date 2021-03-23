@@ -144,13 +144,6 @@ def adminPage(request):
 def userProfileView(request,id):
     return render(request, 'project/userprofile.html')
 
-"""
-def borrowView(request, bookid, userid):
-    print(bookid)
-    print(userid)
-    return render(request, 'project/borrowed.html')
-"""
-
 
 def borrow(request, bookid, userid):
     cursor = connection.cursor()
@@ -270,7 +263,8 @@ def descriptionSearchView(request):
         if form.is_valid():
             query = form.cleaned_data["query"]
             bookCollection = searchByDescription(query)
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+            sqlBookData = Book.objects.all()
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
 
 def titleSearchView(request):
     if request.method == 'POST':
@@ -278,7 +272,8 @@ def titleSearchView(request):
         if form.is_valid():
             title = form.cleaned_data["query"]
             bookCollection = searchByTitle(title)
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+            sqlBookData = Book.objects.all()
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
 
 def categorySearchView(request):
     if request.method == 'POST':
@@ -286,7 +281,8 @@ def categorySearchView(request):
         if form.is_valid():
             category = form.cleaned_data["query"]
             bookCollection = searchByCategory(category)
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+            sqlBookData = Book.objects.all()
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
 
 def yearSearchView(request):
     if request.method == 'POST':
@@ -294,7 +290,8 @@ def yearSearchView(request):
         if form.is_valid():
             year = form.cleaned_data["query"]
             bookCollection = searchByYear(year)
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+            sqlBookData = Book.objects.all()
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
 
 
 def searchExpectedDueDate(userid):

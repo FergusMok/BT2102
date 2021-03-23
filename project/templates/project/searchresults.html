@@ -33,15 +33,17 @@
             <th scope = "row"> {{book.title}} </th>
             <td> {{book.id}} </td>
             <td><a type="button" href="{% url 'book-detail' book.id%}" class="btn btn-outline-success">View Book</a></td>
+            <td>
             {%for b in sqlbooks %}
             {% if b.bookid == book.id %}
               {%if b.available == 1%}
-                <td>Available</td>
+               Available
                 {% else %}
-                <td>Not Available</td>
+                Not Available
               {% endif %}
             {% endif %}
             {% endfor %}
+            </td>
           </tbody>
           {% endfor %}
       </div> 
@@ -64,3 +66,4 @@
       integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
       crossorigin="anonymous"
     ></script>
+  </body>
