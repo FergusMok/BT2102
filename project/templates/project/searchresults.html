@@ -15,34 +15,39 @@
     <title>Books</title>
   </head>
     {% block content %}
-{% for book in bookCollection %} {% if forloop.counter0|divisibleby:5 %}
-      <div class="row text-center d-flex justify-content-around">
-        {% endif %}
-        <div class="col-md-2" style="cursor: pointer">
-          <div class="card" style="width: 12rem; height: 25rem">
-            <img src="{{book.thumbnailUrl}}" alt="" , style="height: 60%" />
-            <div class="card-content d-flex flex-column justify-content-around" style="height: 30%">
-              <h6>{{ book.title }}</h6>
-              <a type="button" href="{% url 'book-detail' book.id%}" class="btn btn-outline-success">View Book</a>
-              <!--                          <div class="text-left ml-3" style="font-size: 12px;">
-                           {% for author in book.authors %}
-                           {% if author != "" %}
-                           <li>{{ author}}</li>
-                           {% endif %}
-                           {% endfor %}
-                         </div> -->
-              <br />
-            </div>
-            <!-- card content -->
-          </div>
-          <!-- card -->
-        </div>
-        <!-- col-md-4 -->
-        {% if forloop.counter|divisibleby:5 or forloop.last %}
-      </div>
-      <!-- row closing -->
-      <hr />
-      {% endif %} {% endfor %}
+    
+<body>
+    <div class = "container">
+      <div class="container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope = "col"> Book title </th>
+              <th scope="col"> Book ID</th>
+              <th scope="col"> View Book Details</th>
+              <th scope="col"> Availability</th>
+            </tr>
+          </thead>
+          {% for book in bookCollection %}
+          <tbody>
+            <th scope = "row"> {{book.title}} </th>
+            <td> {{book.id}} </td>
+            <td><a type="button" href="{% url 'book-detail' book.id%}" class="btn btn-outline-success">View Book</a></td>
+            {%for b in sqlbooks %}
+            {% if b.bookid == book.id %}
+              {%if b.available == 1%}
+                <td>Available</td>
+                {% else %}
+                <td>Not Available</td>
+              {% endif %}
+            {% endif %}
+            {% endfor %}
+          </tbody>
+          {% endfor %}
+      </div> 
+
+
+    
 {% endblock%}
        <script
       src="https://code.jquery.com/jquery-3.2.1.slim.min.js"

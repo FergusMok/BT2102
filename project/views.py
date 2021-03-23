@@ -14,7 +14,7 @@ from django import template
 register = template.Library()
 
 #form imports
-from .forms import BookSearchForm, DescriptionSearchForm
+from .forms import BookSearchForm, DescriptionSearchForm, TitleSearchForm, CategorySearchForm, YearSearchForm
 
 #model imports
 from .models import Users
@@ -47,6 +47,13 @@ def searchByAuthors(author):
         collection.append(book)
     return collection
 
+def searchByTitle(title):
+    titleRegex = re.compile(".*" + title + ".*", re.IGNORECASE)
+    collection = []
+    for book in db.find({"title" : titleRegex}):
+        collection.append(book)
+    return collection
+
 
 def searchByDescription(description):
     authorRegex = re.compile(".*" + description + ".*", re.IGNORECASE)
@@ -62,18 +69,14 @@ def searchByISBN(ISBN):
     for book in db.find({"isbn" : authorRegex}):
         collection.append(book)
     return collection
+
 def searchByCategory(category):
     authorRegex = re.compile(".*" + category + ".*", re.IGNORECASE)
     collection = []
     for book in db.find({"categories" : authorRegex}):
         collection.append(book)
     return collection
-def searchByPublisher(publisher):
-    authorRegex = re.compile(".*" + publisher + ".*", re.IGNORECASE)
-    collection = []
-    for book in db.find({"publisher" : authorRegex}):
-        collection.append(book)
-    return collection
+
 def searchByYear(year):
     collection = []
     for book in db.find({ '$expr': { "$eq" : [{"$year": "$publishedDate"}, year]}}):
@@ -250,22 +253,49 @@ def searchView(request):
         if form.is_valid():
             authorSearch = form.cleaned_data["query"]
             bookCollection = searchByAuthors(authorSearch)
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+            sqlBookData = Book.objects.all()
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection, 'sqlbooks':sqlBookData})
     else:
         form = BookSearchForm()
-    return render(request, 'project/searchbook.html', {'form':form})
+        form2 = DescriptionSearchForm()
+        form3 = TitleSearchForm()
+        form4 = CategorySearchForm()
+        form5 = YearSearchForm()
+    return render(request, 'project/searchbook.html', {'form':form, 'form2':form2, 'form3':form3, 'form4':form4 ,'form5':form5})
     ## If you need a suggestion, you can use a radio button group
 
-def searchView2(request):
+def descriptionSearchView(request):
     if request.method == 'POST':
         form = DescriptionSearchForm(request.POST)
         if form.is_valid():
             query = form.cleaned_data["query"]
             bookCollection = searchByDescription(query)
             return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
-    else:
-        form2 = DescriptionSearchForm()
-    return render(request, 'project/searchbook2.html', {'form2':form2})
+
+def titleSearchView(request):
+    if request.method == 'POST':
+        form = TitleSearchForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["query"]
+            bookCollection = searchByTitle(title)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+
+def categorySearchView(request):
+    if request.method == 'POST':
+        form = CategorySearchForm(request.POST)
+        if form.is_valid():
+            category = form.cleaned_data["query"]
+            bookCollection = searchByCategory(category)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+
+def yearSearchView(request):
+    if request.method == 'POST':
+        form = YearSearchForm(request.POST)
+        if form.is_valid():
+            year = form.cleaned_data["query"]
+            bookCollection = searchByYear(year)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
+
 
 def searchExpectedDueDate(userid):
     # If reserved, return reserve date
