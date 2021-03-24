@@ -353,20 +353,28 @@ def fineUsers(request):
 
         # 1.From BorrowReturn, query all the users that have null returnDate, AND have dueDate that is less than currentDate.
         userList =  list(Borrowreturn.objects.filter(returndate = None, duedate__lte = datetime.today()))
+        # userList can return duplicates, becasue a person may have multiple late entries 
 
         # 2.Find these users, and search if they are in the Fine table.
         # if not, create a new entry, and add the fine.
         # if yes, then just add the fine to the current amount
         userFines = {}
-        userReservations = {}
+        userReservations = []
+        userCheck = []
 
         for user in userList:
             userFines[user.userid] = userFines.get(user.userid, 0) + 1
+        # as use has multiple entries, this will just increase the user's fine each time by 1 
+
         # 3. Using these users, go to the ReserveCancel table, and delete them from the table.
         for user in userList:
-            reserveUser = Reservecancel.objects.get(userid = user.userid)
-            if reserveUser:
-                userReservations[user.userid] = reserveUser.bookid.bookid
+            reserveUsers = Reservecancel.objects.filter(userid = user.userid)
+            # There can be multiple objects witihn this reserveUsers.
+            if user.userid not in userCheck:
+                userCheck.append(user.userid)
+                for reserveUser in reserveUsers:
+                    userReservations.append([reserveUser.userid.userid, reserveUser.bookid.bookid])
+            
         context = {
             'userFines': userFines,
             'userReservations': userReservations,
@@ -393,23 +401,31 @@ def actuallyFineUsers(request):
     if request.user.is_superuser:
         userList =  list(Borrowreturn.objects.filter(returndate = None, duedate__lte = datetime.today()))
         userFines = {}
-        userReservations = {}
+        userReservations = []
+        userCheck = []
         for user in userList:
             userFines[user.userid] = userFines.get(user.userid, 0) + 1
-        # 3. Using these users, go to the ReserveCancel table, and delete them from the table.
         for user in userList:
-            reserveUser = Reservecancel.objects.get(userid = user.userid)
-            if reserveUser:
-                userReservations[user.userid] = reserveUser.bookid.bookid
+            reserveUsers = Reservecancel.objects.filter(userid = user.userid)
+            if user.userid not in userCheck:
+                userCheck.append(user.userid)
+                for reserveUser in reserveUsers:
+                    userReservations.append([reserveUser.userid.userid, reserveUser.bookid.bookid])
         context = {
             'userFines': userFines,
             'userReservations': userReservations,
         }
         for userid, fineAmount in userFines.items():
-            fineUser = fine.objects.get(userid = user.userid)
-            fineUser.fine += fineAmount
-            fineUser.save()
-        for userid, bookid in userReservations.items():
+            fineUser = list(Fine.objects.filter(userid = user.userid))
+            print(fineUser, userid, fineAmount)
+            if fineUser == []:
+                newFineUser = Fine.objects.create(userid = user.userid, fineamount = fineAmount)
+                newFineUser.save()
+            else:
+                fineUser[0].fineamount += fineAmount
+                fineUser[0].save()
+        for userid, bookid in userReservations:
+            print(userid, bookid)
             reserveUser = Reservecancel.objects.get(userid = user.userid, bookid = bookid)
             reserveUser.delete()
         return redirect('home')

@@ -33,12 +33,13 @@
                   <th scope="col-md-2">Book ID</th>
                 </tr>
               </thead>
+              {% for userid, bookid in userReservations %}
               <tbody>
-                {% for userid, bookid in userReservations.items %}
                 <th scope="row">{{userid}}</th>
                 <td>{{bookid}}</td>
-                {% endfor %}
               </tbody>
+
+              {% endfor %}
             </table>
           </div>
         </div>
@@ -53,12 +54,12 @@
                   <th scope="col-md-2">Amount of Fine ($)</th>
                 </tr>
               </thead>
+              {% for userid, amount in userFines.items %}
               <tbody>
-                {% for userid, amount in userFines.items %}
-                <th scope="row">{{userid}}</th>
+                <th scope="row">{{userid.userid}}</th>
                 <td>{{amount}}</td>
-                {% endfor %}
               </tbody>
+              {% endfor %}
             </table>
           </div>
         </div>
