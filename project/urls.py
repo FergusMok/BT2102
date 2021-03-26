@@ -16,6 +16,7 @@ urlpatterns = [
     path('<int:id>/', views.bookview, name="book-detail"),
     path('user/<int:id>/', views.userProfileView, name="user-profile"),
     path('borrowed/<int:bookid>/<int:userid>/', views.borrow, name="borrow"),
+    path('borrowLate/<int:bookid>/<int:userid>/', views.borrowLate, name="borrowLate"),
     path('searchbook/', views.searchView, name="search-book"),
     path('searchbookdescription/', views.descriptionSearchView, name="search-book-desc"),
     path('searchbooktitle/', views.titleSearchView, name="search-book-title"),

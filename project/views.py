@@ -133,7 +133,7 @@ def adminPage(request):
         print(Fine.objects.all())
         context = {
             "listOfFines": Fine.objects.all(),
-            "listOfBorrow": Borrowreturn.objects.all(),
+            "listOfBorrow": Borrowreturn.objects.filter(returndate = None),
             "listOfReservations": Reservecancel.objects.all(),
         }
         return render(request, 'project/adminPage.html', context)
@@ -188,6 +188,47 @@ def borrow(request, bookid, userid):
         if cursor.fetchall()[0][0]: #IF BOOK BORROWED BEFORE
             cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
         cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() + timedelta(days=28)).strftime('%Y-%m-%d')])
+        cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
+        messages.success(request, f'Book has been borrowed!')
+        return redirect('home')
+
+def borrowLate(request, bookid, userid):
+    cursor = connection.cursor()
+    cursor.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)", [bookid])
+    if not cursor.fetchall()[0][0]: #IF BOOK IS NOT IN MYSQL
+        cursor.execute("INSERT INTO Book VALUES (%s, %s)", [bookid, True])
+    cursor.execute("SELECT available FROM Book b WHERE %s = b.bookID", [bookid])
+    if not cursor.fetchall()[0][0]: #IF BOOK IS NOT AVAILABLE
+        cursor.execute("SELECT EXISTS(SELECT bookID from BorrowReturn br where %s = br.bookID and returnDate IS NULL)", [bookid])
+        if cursor.fetchall()[0][0]: #IF BOOK IS BORROWED BY ANOTHER USER:
+            messages.warning(request, f'Book is not available for borrowing.')
+            return bookview(request, bookid)
+        cursor.execute("SELECT EXISTS(SELECT userID, bookID from ReserveCancel rc where %s = rc.userID and %s = rc.bookID)", [userid, bookid])
+        if cursor.fetchall()[0][0]: #IF BOOK IS RESERVED BY USER
+            cursor.execute("SELECT EXISTS(SELECT userID, bookID from BorrowReturn br where %s = br.userID and %s = br.bookID)", [userid, bookid])
+            if cursor.fetchall()[0][0]: #IF BOOK BORROWED BEFORE
+                cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
+            cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() - timedelta(days=2)).strftime('%Y-%m-%d')])
+            cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
+            cursor.execute("DELETE from ReserveCancel rc where %s = rc.userID and %s = rc.bookID", [userid, bookid])
+            messages.success(request, f'Book has been borrowed!')
+            return redirect('home')
+        else: #BOOK IS RESERVED BY ANOTHER USER
+            messages.warning(request, f'Book is not available for borrowing.')
+            return redirect('home')
+    cursor.execute("SELECT EXISTS(SELECT userID FROM Fine WHERE userID = %s)", [userid])
+    if cursor.fetchall()[0][0]: #IF USER HAS FINE
+        messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
+        return bookview(request, bookid)
+    cursor.execute("SELECT count(userID) FROM BorrowReturn br where %s = br.userID and returnDate IS NULL;", [userid])
+    if cursor.fetchall()[0][0] == 4: #IF USER HAS BORROWED 4 BOOKS
+        messages.warning(request, f'Max borrowing limit reached.')
+        return bookview(request, bookid)
+    else:
+        cursor.execute("SELECT EXISTS(SELECT userID, bookID from BorrowReturn br where %s = br.userID and %s = br.bookID)", [userid, bookid])
+        if cursor.fetchall()[0][0]: #IF BOOK BORROWED BEFORE
+            cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
+        cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() - timedelta(days=2)).strftime('%Y-%m-%d')])
         cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
         messages.success(request, f'Book has been borrowed!')
         return redirect('home')

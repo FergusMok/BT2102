@@ -38,6 +38,7 @@
         {% if user.is_authenticated %}
         <a class="btn btn-lg btn-primary" href="{% url 'borrow' book.id user.id%}" role="button">Borrow</a>
         <a class="btn btn-lg btn-primary" href="{% url 'reserve' book.id user.id%}" role="button">Reserve</a>
+        <a class="btn btn-lg btn-primary" href="{% url 'borrowLate' book.id user.id%}" role="button">Borrow Late</a>
         {% endif %}
       </div>
 
