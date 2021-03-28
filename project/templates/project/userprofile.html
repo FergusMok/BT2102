@@ -34,13 +34,13 @@
 
 <body>
   <div class="container-fluid">
-    <h1>{{userid}}'s profile</h1>
+    <h1>{{user.username}}'s profile</h1>
     <h2>Total fine : ${{fine}}</h2>
     <div class="row">
       <!-- If you want to have just one table, you adjust all these 5s to 11 / 12, and then you don't need the above div row -->
       <!-- The tables are at http://localhost:8000/fine, login with root, password 12345-->
       <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
-        <h2 class="sub-header">Current book borrowings</h2>
+        <h2 class="sub-header">Current books borrowed</h2>
         <div class="table-responsive">
           <table class="table table-striped">
             <thead>
@@ -77,7 +77,7 @@
           <table class="table table-striped">
             <thead>
               <tr>
-                <th scope="col-md-1">Book Title</th>
+                <th scope="col-md-1">Book Id</th>
                 <th scope="col-md-2">Cancel</th>
               </tr>
             </thead>

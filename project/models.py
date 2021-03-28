@@ -42,6 +42,7 @@ class Borrowreturn(models.Model):
     extend = models.IntegerField()
     duedate = models.DateField(db_column='dueDate', blank=True, null=True)  # Field name made lowercase.
     returndate = models.DateField(db_column='returnDate', blank=True, null=True)  # Field name made lowercase.
+    
 
     class Meta:
         managed = False

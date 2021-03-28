@@ -147,14 +147,13 @@ def userProfileView(request,id):
         fine = 0
     else:
         fine = filterFine[0].fineamount
-    
     context = {
         "fine": fine,
         "userid": id,
         "borrowList": list(Borrowreturn.objects.filter(userid = id, returndate = None)),
         "reserveList": list(Reservecancel.objects.filter(userid = id)),
+ 
     }
-
     return render(request, 'project/userprofile.html', context)
 
 
