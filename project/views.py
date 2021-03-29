@@ -152,7 +152,7 @@ def userProfileView(request,id):
         "userid": id,
         "borrowList": list(Borrowreturn.objects.filter(userid = id, returndate = None)),
         "reserveList": list(Reservecancel.objects.filter(userid = id)),
- 
+
     }
     return render(request, 'project/userprofile.html', context)
 
@@ -160,18 +160,18 @@ def userProfileView(request,id):
 def borrow(request, bookid, userid):
     cursor = connection.cursor()
     cursor.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)", [bookid])
-    if not cursor.fetchall()[0][0]: #IF BOOK IS NOT IN MYSQL
+    if not cursor.fetchone()[0]: #IF BOOK IS NOT IN MYSQL
         cursor.execute("INSERT INTO Book VALUES (%s, %s)", [bookid, True])
     cursor.execute("SELECT available FROM Book b WHERE %s = b.bookID", [bookid])
-    if not cursor.fetchall()[0][0]: #IF BOOK IS NOT AVAILABLE
+    if not cursor.fetchone()[0]: #IF BOOK IS NOT AVAILABLE
         cursor.execute("SELECT EXISTS(SELECT bookID from BorrowReturn br where %s = br.bookID and returnDate IS NULL)", [bookid])
-        if cursor.fetchall()[0][0]: #IF BOOK IS BORROWED BY ANOTHER USER:
+        if cursor.fetchone()[0]: #IF BOOK IS BORROWED BY ANOTHER USER:
             messages.warning(request, f'Book is not available for borrowing.')
             return bookview(request, bookid)
         cursor.execute("SELECT EXISTS(SELECT userID, bookID from ReserveCancel rc where %s = rc.userID and %s = rc.bookID)", [userid, bookid])
-        if cursor.fetchall()[0][0]: #IF BOOK IS RESERVED BY USER
+        if cursor.fetchone()[0]: #IF BOOK IS RESERVED BY USER
             cursor.execute("SELECT EXISTS(SELECT userID, bookID from BorrowReturn br where %s = br.userID and %s = br.bookID)", [userid, bookid])
-            if cursor.fetchall()[0][0]: #IF BOOK BORROWED BEFORE
+            if cursor.fetchone()[0]: #IF BOOK BORROWED BEFORE
                 cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
             cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() + timedelta(days=28)).strftime('%Y-%m-%d')])
             cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
@@ -182,16 +182,16 @@ def borrow(request, bookid, userid):
             messages.warning(request, f'Book is not available for borrowing.')
             return redirect('home')
     cursor.execute("SELECT EXISTS(SELECT userID FROM Fine WHERE userID = %s)", [userid])
-    if cursor.fetchall()[0][0]: #IF USER HAS FINE
+    if cursor.fetchone()[0]: #IF USER HAS FINE
         messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
         return bookview(request, bookid)
     cursor.execute("SELECT count(userID) FROM BorrowReturn br where %s = br.userID and returnDate IS NULL;", [userid])
-    if cursor.fetchall()[0][0] == 4: #IF USER HAS BORROWED 4 BOOKS
+    if cursor.fetchone()[0] == 4: #IF USER HAS BORROWED 4 BOOKS
         messages.warning(request, f'Max borrowing limit reached.')
         return bookview(request, bookid)
     else:
         cursor.execute("SELECT EXISTS(SELECT userID, bookID from BorrowReturn br where %s = br.userID and %s = br.bookID)", [userid, bookid])
-        if cursor.fetchall()[0][0]: #IF BOOK BORROWED BEFORE
+        if cursor.fetchone()[0]: #IF BOOK BORROWED BEFORE
             cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
         cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() + timedelta(days=28)).strftime('%Y-%m-%d')])
         cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
@@ -201,18 +201,18 @@ def borrow(request, bookid, userid):
 def borrowLate(request, bookid, userid):
     cursor = connection.cursor()
     cursor.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)", [bookid])
-    if not cursor.fetchall()[0][0]: #IF BOOK IS NOT IN MYSQL
+    if not cursor.fetchone()[0]: #IF BOOK IS NOT IN MYSQL
         cursor.execute("INSERT INTO Book VALUES (%s, %s)", [bookid, True])
     cursor.execute("SELECT available FROM Book b WHERE %s = b.bookID", [bookid])
-    if not cursor.fetchall()[0][0]: #IF BOOK IS NOT AVAILABLE
+    if not cursor.fetchone()[0]: #IF BOOK IS NOT AVAILABLE
         cursor.execute("SELECT EXISTS(SELECT bookID from BorrowReturn br where %s = br.bookID and returnDate IS NULL)", [bookid])
-        if cursor.fetchall()[0][0]: #IF BOOK IS BORROWED BY ANOTHER USER:
+        if cursor.fetchone()[0]: #IF BOOK IS BORROWED BY ANOTHER USER:
             messages.warning(request, f'Book is not available for borrowing.')
             return bookview(request, bookid)
         cursor.execute("SELECT EXISTS(SELECT userID, bookID from ReserveCancel rc where %s = rc.userID and %s = rc.bookID)", [userid, bookid])
-        if cursor.fetchall()[0][0]: #IF BOOK IS RESERVED BY USER
+        if cursor.fetchone()[0]: #IF BOOK IS RESERVED BY USER
             cursor.execute("SELECT EXISTS(SELECT userID, bookID from BorrowReturn br where %s = br.userID and %s = br.bookID)", [userid, bookid])
-            if cursor.fetchall()[0][0]: #IF BOOK BORROWED BEFORE
+            if cursor.fetchone()[0]: #IF BOOK BORROWED BEFORE
                 cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
             cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() - timedelta(days=2)).strftime('%Y-%m-%d')])
             cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
@@ -223,16 +223,16 @@ def borrowLate(request, bookid, userid):
             messages.warning(request, f'Book is not available for borrowing.')
             return redirect('home')
     cursor.execute("SELECT EXISTS(SELECT userID FROM Fine WHERE userID = %s)", [userid])
-    if cursor.fetchall()[0][0]: #IF USER HAS FINE
+    if cursor.fetchone()[0]: #IF USER HAS FINE
         messages.warning(request, f'Please pay any outstanding fines before borrowing a book')
         return bookview(request, bookid)
     cursor.execute("SELECT count(userID) FROM BorrowReturn br where %s = br.userID and returnDate IS NULL;", [userid])
-    if cursor.fetchall()[0][0] == 4: #IF USER HAS BORROWED 4 BOOKS
+    if cursor.fetchone()[0] == 4: #IF USER HAS BORROWED 4 BOOKS
         messages.warning(request, f'Max borrowing limit reached.')
         return bookview(request, bookid)
     else:
         cursor.execute("SELECT EXISTS(SELECT userID, bookID from BorrowReturn br where %s = br.userID and %s = br.bookID)", [userid, bookid])
-        if cursor.fetchall()[0][0]: #IF BOOK BORROWED BEFORE
+        if cursor.fetchone()[0]: #IF BOOK BORROWED BEFORE
             cursor.execute("DELETE from BorrowReturn br where %s = br.userID and %s = br.bookID", [userid, bookid])
         cursor.execute("INSERT INTO BorrowReturn VALUES (%s, %s, FALSE, %s, null)", [userid, bookid, (datetime.today() - timedelta(days=2)).strftime('%Y-%m-%d')])
         cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
@@ -243,15 +243,15 @@ def borrowLate(request, bookid, userid):
 def extend(request, bookid, userid):
     cursor = connection.cursor()
     cursor.execute("SELECT EXISTS(SELECT userID FROM Fine f where %s = f.userID)", [userid])
-    if cursor.fetchall()[0][0]: #IF USER HAS FINE
+    if cursor.fetchone()[0]: #IF USER HAS FINE
         messages.warning(request, f'Please pay any outstanding fines before extending a book.')
         return bookview(request, bookid)
     cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
-    if cursor.fetchall()[0][0]: #IF BOOK IS RESERVED BY ANOTHER USER
+    if cursor.fetchone()[0]: #IF BOOK IS RESERVED BY ANOTHER USER
         messages.warning(request, f'Unable to extend. Book has been reserved by another user.')
         return bookview(request, bookid)
     cursor.execute("SELECT extend FROM BorrowReturn br WHERE %s = br.bookID and %s = br.userID", [bookid, userid])
-    if cursor.fetchall()[0][0]: #IF BOOK HAS BEEN EXTENDED BEFORE
+    if cursor.fetchone()[0]: #IF BOOK HAS BEEN EXTENDED BEFORE
         messages.warning(request, f'Unable to extend. Book has already been extended.')
         return bookview(request, bookid)
     cursor.execute("UPDATE BorrowReturn br SET extend = TRUE, dueDate = DATE_ADD(br.dueDate, INTERVAL 28 DAY) WHERE %s = br.bookID and %s = br.userID", [bookid, userid])
@@ -262,14 +262,14 @@ def extend(request, bookid, userid):
 def reserve(request, bookid, userid):
     cursor = connection.cursor()
     cursor.execute("SELECT EXISTS(SELECT bookID FROM Book b WHERE %s = b.bookID)", [bookid])
-    if not cursor.fetchall()[0][0]: #IF BOOK IS NOT IN MYSQL
+    if not cursor.fetchone()[0]: #IF BOOK IS NOT IN MYSQL
         cursor.execute("INSERT INTO Book VALUES (%s, %s)", [bookid, True])
     cursor.execute("SELECT EXISTS(SELECT userID FROM Fine f where %s = f.userID)", [userid])
-    if cursor.fetchall()[0][0]: #IF USER HAS FINE
+    if cursor.fetchone()[0]: #IF USER HAS FINE
         messages.warning(request, f'Please pay any outstanding fines before reserving a book.')
         return bookview(request, bookid)
     cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
-    if cursor.fetchall()[0][0]: #IF BOOK IS RESERVED BY ANOTHER USER
+    if cursor.fetchone()[0]: #IF BOOK IS RESERVED BY ANOTHER USER
         messages.warning(request, f'Unable to reserve. Book has been reserved by another user.')
         return bookview(request, bookid)
     cursor.execute("INSERT INTO ReserveCancel VALUES (%s, %s, (Select dueDate from BorrowReturn br where %s = br.bookID))", [userid, bookid, bookid])
@@ -283,14 +283,14 @@ def returnBook(request, bookid, userid):
     cursor = connection.cursor()
     cursor.execute("UPDATE BorrowReturn br set returnDate = %s where %s = br.bookID and %s = br.userID", [datetime.today(), bookid, userid])
     cursor.execute("SELECT EXISTS(SELECT bookID FROM ReserveCancel rc where %s = rc.bookID)", [bookid])
-    if not cursor.fetchall()[0][0]: #IF BOOK IS RESERVED BY ANOTHER USER
+    if not cursor.fetchone()[0]: #IF BOOK IS RESERVED BY ANOTHER USER
         cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
     messages.success(request, f'Book has been returned!')
 
     user =  list(Borrowreturn.objects.filter(userid = userid, bookid = bookid))[0] # User object
     print(type(user.returndate))
     if (user.returndate - user.duedate) > timedelta(days=1):
-        amountOfFine = (user.returndate - user.duedate).days     
+        amountOfFine = (user.returndate - user.duedate).days
         reserveUsers = Reservecancel.objects.filter(userid = user.userid) # Reserve object
 
         fineUser = list(Fine.objects.filter(userid = user.userid))
@@ -300,10 +300,10 @@ def returnBook(request, bookid, userid):
         else:
             fineUser[0].fineamount += amountOfFine - 1
             fineUser[0].save()
-        
-        reserveUsers = Reservecancel.objects.filter(userid = user.userid) 
+
+        reserveUsers = Reservecancel.objects.filter(userid = user.userid)
         for reserveUser in reserveUsers:
-            userid = reserveUser.userid.userid 
+            userid = reserveUser.userid.userid
             bookid = reserveUser.bookid.bookID
             reserveUser = Reservecancel.objects.get(userid = user.userid, bookid = bookid)
             reserveUser.delete()
@@ -315,10 +315,21 @@ def cancelRes(request, bookid, userid):
     cursor = connection.cursor()
     cursor.execute("Delete from ReserveCancel rc where %s = rc.userID and %s = rc.bookID", [userid, bookid])
     cursor.execute("SELECT EXISTS(SELECT bookID, returnDate from BorrowReturn br where %s = br.bookID and returnDate is not null)", [bookid])
-    if not cursor.fetchall()[0][0]: #IF BOOK IS CURRENTLY BEING BORROWED BY ANOTHER USER
+    if not cursor.fetchone()[0]: #IF BOOK IS CURRENTLY BEING BORROWED BY ANOTHER USER
         cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
     messages.success(request, f'Book reservation has been cancelled!')
     return redirect('home')
+
+
+def makePayment(request, userid):
+    cursor = connection.cursor()
+    cursor.execute("SELECT fineAmount FROM Fine f WHERE f.userID = %s", [userid])
+    sum = cursor.fetchone()[0]
+    cursor.execte("INSERT INTO Payment VALUES (%s, %s, %s)", [userid, datetime.today(), sum])
+    cursor.execute("DELETE from Fine f WHERE f.userID = %s", [userid])
+    messages.success(request, f'Payment has been made')
+    return redirect('home')
+
 
 
 def searchView(request):
@@ -422,7 +433,7 @@ def fineUsers(request):
 
         # 1.From BorrowReturn, query all the users that have null returnDate, AND have dueDate that is less than currentDate.
         userList =  list(Borrowreturn.objects.filter(returndate = None, duedate__lte = datetime.today()))
-        # userList can return duplicates, becasue a person may have multiple late entries 
+        # userList can return duplicates, becasue a person may have multiple late entries
 
         # 2.Find these users, and search if they are in the Fine table.
         # if not, create a new entry, and add the fine.
@@ -433,7 +444,7 @@ def fineUsers(request):
 
         for user in userList:
             userFines[user.userid] = userFines.get(user.userid, 0) + 1
-        # as use has multiple entries, this will just increase the user's fine each time by 1 
+        # as use has multiple entries, this will just increase the user's fine each time by 1
 
         # 3. Using these users, go to the ReserveCancel table, and delete them from the table.
         for user in userList:
@@ -443,7 +454,7 @@ def fineUsers(request):
                 userCheck.append(user.userid)
                 for reserveUser in reserveUsers:
                     userReservations.append([reserveUser.userid.userid, reserveUser.bookid.bookid])
-            
+
         context = {
             'userFines': userFines,
             'userReservations': userReservations,
@@ -501,4 +512,4 @@ def actuallyFineUsers(request):
 
     else:
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
-        return redirect('home') 
+        return redirect('home')
