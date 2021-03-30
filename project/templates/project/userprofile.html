@@ -35,11 +35,12 @@
 <body>
   <div class="container-fluid">
     <h1>{{user.username}}'s profile</h1>
-    <h2>Total fine : ${{fine}}</h2>
+    <h2>Total fine : ${{totalFine}}</h2>
+    <a class="btn btn-lg btn-primary" href="{% url 'makePayment' user.id%}" role="button"> Pay off my fines </a>
     <div class="row">
       <!-- If you want to have just one table, you adjust all these 5s to 11 / 12, and then you don't need the above div row -->
       <!-- The tables are at http://localhost:8000/fine, login with root, password 12345-->
-      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+      <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
         <h2 class="sub-header">Current books borrowed</h2>
         <div class="table-responsive">
           <table class="table table-striped">
@@ -71,7 +72,7 @@
         </div>
       </div>
 
-      <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+      <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
         <h2 class="sub-header">Current book reservations</h2>
         <div class="table-responsive">
           <table class="table table-striped">
@@ -87,6 +88,28 @@
               <td>
                 <a href="{% url 'cancelRes' reserveObject.bookid.bookid userid  %}">
                   <div style="height: 100%; width: 100%">Cancel</div>
+                </a>
+              </td>
+            </tbody>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+        <h2 class="sub-header">Current Fines</h2>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col-md-1">Book Id</th>
+                <th scope="col-md-2">$</th>
+              </tr>
+            </thead>
+            {% for singleFine in fine %}
+            <tbody>
+              <th scope="row">{{singleFine.bookid.bookid}}</th>
+              <td>
+                  <div style="height: 100%; width: 100%">{{ singleFine.fineamount }}</div>
                 </a>
               </td>
             </tbody>

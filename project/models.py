@@ -7,7 +7,6 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
-
 class Admins(models.Model):
     userid = models.AutoField(db_column='userID', primary_key=True)  # Field name made lowercase.
     userpassword = models.CharField(db_column='userPassword', max_length=128)  # Field name made lowercase.
@@ -42,7 +41,6 @@ class Borrowreturn(models.Model):
     extend = models.IntegerField()
     duedate = models.DateField(db_column='dueDate', blank=True, null=True)  # Field name made lowercase.
     returndate = models.DateField(db_column='returnDate', blank=True, null=True)  # Field name made lowercase.
-    
 
     class Meta:
         managed = False
@@ -52,11 +50,13 @@ class Borrowreturn(models.Model):
 
 class Fine(models.Model):
     userid = models.OneToOneField('Users', models.DO_NOTHING, db_column='userID', primary_key=True)  # Field name made lowercase.
+    bookid = models.ForeignKey(Book, models.DO_NOTHING, db_column='bookID')  # Field name made lowercase.
     fineamount = models.IntegerField(db_column='fineAmount')  # Field name made lowercase.
 
     class Meta:
         managed = False
         db_table = 'Fine'
+        unique_together = (('userid', 'bookid'),)
 
 
 class Payment(models.Model):
@@ -67,7 +67,6 @@ class Payment(models.Model):
     class Meta:
         managed = False
         db_table = 'Payment'
-
 
 class Reservecancel(models.Model):
     userid = models.OneToOneField('Users', models.DO_NOTHING, db_column='userID', primary_key=True)  # Field name made lowercase.

@@ -141,14 +141,18 @@ def adminPage(request):
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
         return redirect('home')
 
+
 def userProfileView(request,id):
-    filterFine = list(Fine.objects.filter(userid = id))
+    filterFine = list(Fine.objects.filter(userid = id).exclude(fineamount = 0))
     if filterFine == [] :
-        fine = 0
+        totalFine = 0
     else:
-        fine = filterFine[0].fineamount
+        totalFine = 0
+        for fines in filterFine:
+            totalFine += fines.fineamount
     context = {
-        "fine": fine,
+        "totalFine": totalFine,
+        "fine": filterFine,
         "userid": id,
         "borrowList": list(Borrowreturn.objects.filter(userid = id, returndate = None)),
         "reserveList": list(Reservecancel.objects.filter(userid = id)),
@@ -287,26 +291,6 @@ def returnBook(request, bookid, userid):
         cursor.execute("UPDATE Book b SET available = TRUE WHERE %s = b.bookID", [bookid])
     messages.success(request, f'Book has been returned!')
 
-    user =  list(Borrowreturn.objects.filter(userid = userid, bookid = bookid))[0] # User object
-    print(type(user.returndate))
-    if (user.returndate - user.duedate) > timedelta(days=1):
-        amountOfFine = (user.returndate - user.duedate).days
-        reserveUsers = Reservecancel.objects.filter(userid = user.userid) # Reserve object
-
-        fineUser = list(Fine.objects.filter(userid = user.userid))
-        if fineUser == []:
-            newFineUser = Fine.objects.create(userid = user.userid, fineamount = amountOfFine)
-            newFineUser.save()
-        else:
-            fineUser[0].fineamount += amountOfFine - 1
-            fineUser[0].save()
-
-        reserveUsers = Reservecancel.objects.filter(userid = user.userid)
-        for reserveUser in reserveUsers:
-            userid = reserveUser.userid.userid
-            bookid = reserveUser.bookid.bookID
-            reserveUser = Reservecancel.objects.get(userid = user.userid, bookid = bookid)
-            reserveUser.delete()
     return redirect('home')
 
 
@@ -323,14 +307,16 @@ def cancelRes(request, bookid, userid):
 
 def makePayment(request, userid):
     cursor = connection.cursor()
-    cursor.execute("SELECT fineAmount FROM Fine f WHERE f.userID = %s", [userid])
-    sum = cursor.fetchone()[0]
-    cursor.execte("INSERT INTO Payment VALUES (%s, %s, %s)", [userid, datetime.today(), sum])
+    cursor.execute("SELECT SUM(fineAmount) FROM Fine f WHERE f.userID = %s", [userid])
+    fineAmount = cursor.fetchone()[0]
+    cursor.execute("SELECT EXISTS(SELECT userID FROM Payment where userID = %s)", [userid])
+    if cursor.fetchone()[0]:
+        cursor.execute("UPDATE Payment p SET paymentAmount = p.paymentAmount + %s WHERE %s = p.userID", [fineAmount, userid])
+    else:
+        cursor.execute("INSERT INTO Payment VALUES (%s, %s, %s)", [userid, datetime.today(), fineAmount ])
     cursor.execute("DELETE from Fine f WHERE f.userID = %s", [userid])
     messages.success(request, f'Payment has been made')
     return redirect('home')
-
-
 
 def searchView(request):
     if request.method == 'POST':
@@ -513,3 +499,28 @@ def actuallyFineUsers(request):
     else:
         messages.warning(request, f'You do not have sufficient privileges to enter here!') # flash message
         return redirect('home')
+
+def workingFine(request,userid,bookid):
+    user =  list(Borrowreturn.objects.filter(userid = userid, bookid = bookid))[0] # User object
+    print(type(user.returndate))
+    if (user.returndate - user.duedate) > timedelta(days=1):
+        amountOfFine = (user.returndate - user.duedate).days
+        reserveUsers = Reservecancel.objects.filter(userid = user.userid) # Reserve object
+
+        fineUser = list(Fine.objects.filter(userid = user.userid))
+        if fineUser == []:
+            newFineUser = Fine.objects.create(userid = user.userid, fineamount = amountOfFine)
+            newFineUser.save()
+        else:
+            fineUser[0].fineamount += amountOfFine - 1
+            fineUser[0].save()
+
+        reserveUsers = Reservecancel.objects.filter(userid = user.userid)
+        for reserveUser in reserveUsers:
+            userid = reserveUser.userid.userid
+            bookid = reserveUser.bookid.bookID
+            reserveUser = Reservecancel.objects.get(userid = user.userid, bookid = bookid)
+            reserveUser.delete()
+        return redirect('home')
+    
+    return redirect('home')
