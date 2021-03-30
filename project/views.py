@@ -512,7 +512,7 @@ def workingFine(request,userid,bookid):
             newFineUser = Fine.objects.create(userid = user.userid, fineamount = amountOfFine)
             newFineUser.save()
         else:
-            fineUser[0].fineamount += amountOfFine - 1
+            fineUser[0].fineamount += amountOfFine
             fineUser[0].save()
 
         reserveUsers = Reservecancel.objects.filter(userid = user.userid)
