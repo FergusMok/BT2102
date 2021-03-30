@@ -14,7 +14,7 @@ from django import template
 register = template.Library()
 
 #form imports
-from .forms import BookSearchForm, DescriptionSearchForm, TitleSearchForm, CategorySearchForm, YearSearchForm
+from .forms import BookSearchForm, DescriptionSearchForm, TitleSearchForm, CategorySearchForm, YearSearchForm, IDSearchForm, ISBNSearchForm
 
 #model imports
 from .models import Users
@@ -332,7 +332,9 @@ def searchView(request):
         form3 = TitleSearchForm()
         form4 = CategorySearchForm()
         form5 = YearSearchForm()
-    return render(request, 'project/searchbook.html', {'form':form, 'form2':form2, 'form3':form3, 'form4':form4 ,'form5':form5})
+        form6 = IDSearchForm()
+        form7 = ISBNSearchForm()
+    return render(request, 'project/searchbook.html', {'form':form, 'form2':form2, 'form3':form3, 'form4':form4 ,'form5':form5, 'form6':form6, 'form7':form7})
     ## If you need a suggestion, you can use a radio button group
 
 def descriptionSearchView(request):
@@ -370,6 +372,25 @@ def yearSearchView(request):
             bookCollection = searchByYear(year)
             sqlBookData = Book.objects.all()
             return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+
+def idSearchView(request):
+    if request.method == 'POST':
+        form = IDSearchForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data["query"]
+            bookCollection = searchByID(query)
+            sqlBookData = Book.objects.all()
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+
+def isbnSearchView(request):
+    if request.method == 'POST':
+        form = ISBNSearchForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data["query"]
+            bookCollection = searchByISBN(query)
+            sqlBookData = Book.objects.all()
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+
 
 
 def searchExpectedDueDate(userid):

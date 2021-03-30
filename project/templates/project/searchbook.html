@@ -183,6 +183,73 @@
           </div>
         </div>
       </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingSix">
+          <button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseSix"
+            aria-expanded="false"
+            aria-controls="collapseSix"
+          >
+            Search By Book ID
+          </button>
+        </h2>
+        <div
+          id="collapseSix"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingSix"
+          data-bs-parent="#accordionExample"
+        >
+          <div class="accordion-body">
+            <div
+              class="border-dark d-flex flex-column justify-content-around"
+              style="width: 50%; margin: 0 auto; font-size: 2rem"
+            >
+              <form action="{%url 'search-book-id'%}" method="post">
+                <div class="form-group">{% csrf_token %} {{ form6 }}</div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+            <div class="accordion-item">
+        <h2 class="accordion-header" id="headingseven">
+          <button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseseven"
+            aria-expanded="false"
+            aria-controls="collapseseven"
+          >
+            Search By Book ISBN
+          </button>
+        </h2>
+        <div
+          id="collapseseven"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingseven"
+          data-bs-parent="#accordionExample"
+        >
+          <div class="accordion-body">
+            <div
+              class="border-dark d-flex flex-column justify-content-around"
+              style="width: 50%; margin: 0 auto; font-size: 2rem"
+            >
+              <form action="{%url 'search-book-isbn'%}" method="post">
+                <div class="form-group">{% csrf_token %} {{ form7 }}</div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     {% endblock%}

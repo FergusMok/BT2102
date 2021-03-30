@@ -44,3 +44,21 @@ class YearSearchForm(forms.Form):
 			})
 		)
 
+class IDSearchForm(forms.Form):
+		query = forms.IntegerField(label="Search By ID", 
+		widget=forms.TextInput(attrs={
+			'class':'form-control',
+			'placeholder':'Enter Keywords Here'
+			})
+		)
+
+
+class ISBNSearchForm(forms.Form):
+		query = forms.CharField(label="Search By ISBN", 
+		widget=forms.TextInput(attrs={
+			'class':'form-control',
+			'placeholder':'Enter Keywords Here'
+			})
+		)
+
+
