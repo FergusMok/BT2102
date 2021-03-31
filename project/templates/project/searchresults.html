@@ -26,6 +26,8 @@
               <th scope="col"> Book ID</th>
               <th scope="col"> View Book Details</th>
               <th scope="col"> Availability</th>
+              <th scope="col"> Expected Due Date:</th>
+              <th scope="col"> Reserved:</th>
             </tr>
           </thead>
           {% for book in bookCollection %}
@@ -34,15 +36,13 @@
             <td> {{book.id}} </td>
             <td><a type="button" href="{% url 'book-detail' book.id%}" class="btn btn-outline-success">View Book</a></td>
             <td>
-            {%for b in sqlbooks %}
-            {% if b.bookid == book.id %}
-              {%if b.available == 1%}
-               Available
-                {% else %}
-                Not Available
-              {% endif %}
-            {% endif %}
-            {% endfor %}
+              {{book.availability}}
+            </td>
+            <td>
+            {{ book.dueDate }}
+            </td>
+            <td>
+            {{ book.reserved }}
             </td>
           </tbody>
           {% endfor %}

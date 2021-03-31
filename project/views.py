@@ -278,7 +278,7 @@ def reserve(request, bookid, userid):
     if cursor.fetchone()[0]: #IF BOOK IS RESERVED BY ANOTHER USER
         messages.warning(request, f'Unable to reserve. Book has been reserved by another user.')
         return bookview(request, bookid)
-    cursor.execute("INSERT INTO ReserveCancel VALUES (%s, %s, (Select dueDate from BorrowReturn br where %s = br.bookID))", [userid, bookid, bookid])
+    cursor.execute("INSERT INTO ReserveCancel VALUES (%s, %s, (Select dueDate from BorrowReturn br where %s = br.bookID and returnDate IS NULL))", [userid, bookid, bookid])
     cursor.execute("UPDATE Book b SET available = FALSE WHERE %s = b.bookID", [bookid])
     messages.success(request, f'Book has been reserved!')
     return redirect('home')
@@ -324,6 +324,7 @@ def makePayment(request, userid):
     messages.success(request, f'Payment has been made')
     return redirect('home')
 
+
 def searchView(request):
     if request.method == 'POST':
         form = BookSearchForm(request.POST)
@@ -343,14 +344,46 @@ def searchView(request):
     return render(request, 'project/searchbook.html', {'form':form, 'form2':form2, 'form3':form3, 'form4':form4 ,'form5':form5, 'form6':form6, 'form7':form7})
     ## If you need a suggestion, you can use a radio button group
 
+def getDueDateAndReservedStatus(bookCollection):
+    finalResult = []
+    sqlBookData = Book.objects.all()
+    for book in bookCollection:
+        cursor = connection.cursor()
+        cursor.execute("SELECT bookID FROM Book WHERE bookid = %s", [book["id"]])
+        if cursor.fetchone(): # If true, means there a dueDate.
+            if cursor.fetchone() == 0:
+                book["availability"] = "Not Available"
+            else:
+                book["availability"] = "Available"
+        else:
+            book["availability"] = "Available"
+
+        cursor.execute("SELECT EXISTS (SELECT dueDate FROM BorrowReturn WHERE returnDate IS NULL and bookid = %s)", [book["id"]])
+        if cursor.fetchone()[0]: # If true, means there a dueDate.
+            cursor.execute("SELECT dueDate FROM BorrowReturn WHERE returnDate IS NULL and bookid = %s", [book["id"]])
+            book["dueDate"] = cursor.fetchone()[0].strftime('%Y-%m-%d')
+        else: # No dueDate. Means there's no such row
+            book["dueDate"] = "N.A."
+        # Check if reservation exists for the book
+        cursor.execute("SELECT EXISTS (SELECT * FROM ReserveCancel WHERE bookid = %s)", [book["id"]])
+        if cursor.fetchone()[0]: # If true, means there a dueDate.
+            book["reserved"] = "Yes"
+        else: # No dueDate. Means there's no such row
+            book["reserved"] = "No"
+
+        finalResult += [book]
+    return finalResult
+
+
+
 def descriptionSearchView(request):
     if request.method == 'POST':
         form = DescriptionSearchForm(request.POST)
         if form.is_valid():
             query = form.cleaned_data["query"]
             bookCollection = searchByDescription(query)
-            sqlBookData = Book.objects.all()
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+            bookCollection = getDueDateAndReservedStatus(bookCollection)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
 
 def titleSearchView(request):
     if request.method == 'POST':
@@ -359,7 +392,8 @@ def titleSearchView(request):
             title = form.cleaned_data["query"]
             bookCollection = searchByTitle(title)
             sqlBookData = Book.objects.all()
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+            bookCollection = getDueDateAndReservedStatus(bookCollection)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
 
 def categorySearchView(request):
     if request.method == 'POST':
@@ -368,7 +402,8 @@ def categorySearchView(request):
             category = form.cleaned_data["query"]
             bookCollection = searchByCategory(category)
             sqlBookData = Book.objects.all()
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+            bookCollection = getDueDateAndReservedStatus(bookCollection)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
 
 def yearSearchView(request):
     if request.method == 'POST':
@@ -377,7 +412,8 @@ def yearSearchView(request):
             year = form.cleaned_data["query"]
             bookCollection = searchByYear(year)
             sqlBookData = Book.objects.all()
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+            bookCollection = getDueDateAndReservedStatus(bookCollection)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
 
 def idSearchView(request):
     if request.method == 'POST':
@@ -386,7 +422,8 @@ def idSearchView(request):
             query = form.cleaned_data["query"]
             bookCollection = searchByID(query)
             sqlBookData = Book.objects.all()
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+            bookCollection = getDueDateAndReservedStatus(bookCollection)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
 
 def isbnSearchView(request):
     if request.method == 'POST':
@@ -395,7 +432,8 @@ def isbnSearchView(request):
             query = form.cleaned_data["query"]
             bookCollection = searchByISBN(query)
             sqlBookData = Book.objects.all()
-            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection,'sqlbooks':sqlBookData})
+            bookCollection = getDueDateAndReservedStatus(bookCollection)
+            return render(request, 'project/searchresults.html', {'bookCollection':bookCollection})
 
 
 
