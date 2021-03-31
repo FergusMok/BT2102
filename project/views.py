@@ -130,7 +130,9 @@ def register(request):
 
 def adminPage(request):
     if request.user.is_authenticated and request.user.is_superuser:
-        print(Fine.objects.all())
+        print(Fine.objects.all()) 
+        # We need to change this listOfFines too. This should be based on total fine, and not the number of rows in the Fine.
+        # Should also include what the fines are for. 
         context = {
             "listOfFines": Fine.objects.all(),
             "listOfBorrow": Borrowreturn.objects.filter(returndate = None),
@@ -307,6 +309,10 @@ def cancelRes(request, bookid, userid):
 
 def makePayment(request, userid):
     cursor = connection.cursor()
+    cursor.execute("SELECT EXISTS(SELECT userID FROM Fine where userID = %s)", [userid])
+    if not cursor.fetchone()[0]:
+        messages.warning(request, f'You have no fines to pay!')
+        return redirect('home')
     cursor.execute("SELECT SUM(fineAmount) FROM Fine f WHERE f.userID = %s", [userid])
     fineAmount = cursor.fetchone()[0]
     cursor.execute("SELECT EXISTS(SELECT userID FROM Payment where userID = %s)", [userid])
